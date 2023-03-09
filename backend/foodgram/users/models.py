@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
 
 ADMIN = "admin"
@@ -19,13 +19,16 @@ class User(AbstractUser):
         choices=ROLE_CHOICES,
     )
     email = models.EmailField(
-        max_length=254, unique=True, verbose_name="Почта"
+        max_length=254, unique=True, null=False, verbose_name="Почта"
     )
     first_name = models.CharField(
-        max_length=30, blank=True, null=True, verbose_name="Имя"
+        max_length=30, blank=True, null=False, verbose_name="Имя"
     )
     last_name = models.CharField(
-        max_length=150, blank=True, null=True, verbose_name="Фамилия"
+        max_length=150, blank=True, null=False, verbose_name="Фамилия"
+    )
+    groups = models.ManyToManyField(
+        Group, verbose_name="Группы", related_name="user_grups", blank=True
     )
 
     @property

@@ -9,7 +9,11 @@ class Tags(models.Model):
     """Модель тегов"""
 
     title = models.CharField(
-        max_length=200, unique=True, null=False, verbose_name="Название тега"
+        max_length=200,
+        unique=True,
+        null=False,
+        verbose_name="Название тега",
+        db_index=True,
     )
     color = models.CharField(
         max_length=20,
@@ -19,7 +23,11 @@ class Tags(models.Model):
         verbose_name="Цвет тега",
     )
     slug = models.SlugField(
-        max_length=200, unique=True, null=False, verbose_name="Слаг"
+        max_length=200,
+        unique=True,
+        null=False,
+        verbose_name="Слаг",
+        db_index=True,
     )
 
     class Meta:
@@ -31,8 +39,8 @@ class Tags(models.Model):
         return self.title
 
 
-class Ingrigients(models.Model):
-    """Модель ингридиентов"""
+class IngridientsList(models.Model):
+    """Модель списка ингридиентов"""
 
     DIMENSION_CHOICES = (
         ("г", "грамм"),
@@ -56,18 +64,14 @@ class Ingrigients(models.Model):
         ("капля", "капля"),
     )
 
-    title = models.CharField(
+    name = models.CharField(
         max_length=200,
-        unique=True,
         null=False,
         verbose_name="Название ингридиента",
+        db_index=True,
     )
-    count_ingr = models.PositiveIntegerField(
-        null=False, verbose_name="Количество ингридиента"
-    )
-    dimension = models.CharField(
+    measurement_unit = models.CharField(
         max_length=200,
-        unique=True,
         null=False,
         choices=DIMENSION_CHOICES,
         verbose_name="Единица измерения",
@@ -76,10 +80,15 @@ class Ingrigients(models.Model):
     class Meta:
         verbose_name = "Ингридиент"
         verbose_name_plural = "Ингридиенты"
-        ordering = ["title"]
+        ordering = ["name"]
 
-    def __str__(self):
-        return self.title
+
+class Ingrigients(IngridientsList):
+    """Модель ингридиентов для рецептов"""
+
+    count_ingr = models.PositiveIntegerField(
+        null=False, verbose_name="Количество ингридиента"
+    )
 
 
 class Recipes(models.Model):
@@ -90,6 +99,7 @@ class Recipes(models.Model):
         unique=True,
         null=False,
         verbose_name="Название рецепта",
+        db_index=True,
     )
     author = models.ForeignKey(
         User,
@@ -109,11 +119,15 @@ class Recipes(models.Model):
         auto_now_add=True, null=False, verbose_name="Дата публикации"
     )
     tags = models.ManyToManyField(
-        Tags, null=False, related_name="recipes", verbose_name="Теги"
+        Tags,
+        blank=True,
+        related_name="recipes",
+        verbose_name="Теги",
+        db_index=True,
     )
     ingredients = models.ManyToManyField(
         Ingrigients,
-        null=False,
+        blank=True,
         related_name="recipes",
         verbose_name="Ингридиенты",
     )

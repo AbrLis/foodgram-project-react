@@ -1,19 +1,11 @@
 from django.contrib import admin
 
-from .models import Ingrigients, Recipes, Tags, SelectedRecipes
-
-
-class IngrigientsAdmin(admin.ModelAdmin):
-    """Админка ингридиентов"""
-
-    list_display = (
-        "title",
-        "dimension",
-    )
-    search_fields = ("title",)
-    list_filter = ("title",)
-    empty_value_display = "-пусто-"
-    sortable_by = ("title",)
+from .models import (
+    IngridientsList,
+    Recipes,
+    Tags,
+    SelectedRecipes,
+)
 
 
 class TagsAdmin(admin.ModelAdmin):
@@ -58,7 +50,22 @@ class SelectedRecipesAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(Ingrigients, IngrigientsAdmin)
+class IngridientsListAdmin(admin.ModelAdmin):
+    """Админка ингридиентов"""
+
+    list_display = (
+        "name",
+        "measurement_unit",
+    )
+    search_fields = ("name",)
+    list_filter = ("name",)
+    empty_value_display = "-пусто-"
+    sortable_by = (
+        "name",
+    )
+
+
 admin.site.register(Tags, TagsAdmin)
 admin.site.register(Recipes, RecipeAdmin)
 admin.site.register(SelectedRecipes, SelectedRecipesAdmin)
+admin.site.register(IngridientsList, IngridientsListAdmin)
