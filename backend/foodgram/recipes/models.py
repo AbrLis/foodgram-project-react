@@ -39,30 +39,8 @@ class Tags(models.Model):
         return self.title
 
 
-class IngridientsList(models.Model):
+class IngredientsList(models.Model):
     """Модель списка ингридиентов"""
-
-    DIMENSION_CHOICES = (
-        ("г", "грамм"),
-        ("кг", "килограмм"),
-        ("мл", "миллилитр"),
-        ("л.", "литр"),
-        ("ч. л.", "чайная ложка"),
-        ("ст. л.", "столовая ложка"),
-        ("пучок", "пучок"),
-        ("кусок", "кусок"),
-        ("шт.", "штука"),
-        ("по вкусу", "по вкусу"),
-        ("щепотка", "щепотка"),
-        ("стакан", "стакан"),
-        ("долька", "долька"),
-        ("банка", "банка"),
-        ("горсть", "горсть"),
-        ("упаковка", "упаковка"),
-        ("пакет", "пакет"),
-        ("зубчик", "зубчик"),
-        ("капля", "капля"),
-    )
 
     name = models.CharField(
         max_length=200,
@@ -73,7 +51,6 @@ class IngridientsList(models.Model):
     measurement_unit = models.CharField(
         max_length=200,
         null=False,
-        choices=DIMENSION_CHOICES,
         verbose_name="Единица измерения",
     )
 
@@ -83,7 +60,7 @@ class IngridientsList(models.Model):
         ordering = ["name"]
 
 
-class Ingrigients(IngridientsList):
+class Ingregients(IngredientsList):
     """Модель ингридиентов для рецептов"""
 
     count_ingr = models.PositiveIntegerField(
@@ -126,7 +103,7 @@ class Recipes(models.Model):
         db_index=True,
     )
     ingredients = models.ManyToManyField(
-        Ingrigients,
+        Ingregients,
         blank=True,
         related_name="recipes",
         verbose_name="Ингридиенты",
