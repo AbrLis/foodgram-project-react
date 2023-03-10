@@ -1,32 +1,38 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from backend.foodgram.foodgram import settings
-from serializers import MyUserCreateSerializer, UserSerializer
+from .serializers import MyUserCreateSerializer, UserSerializer
 
-User = settings.AUTH_USER_MODEL
+User = get_user_model()
 
 
 class UserSignUpViewSet(UserViewSet):
     """Класс api/users/ для регистрации и получения списка пользователей"""
 
-    @action(detail=False, methods=["post"])
-    def signup(self, request, *args, **kwargs):
+    # @action(detail=False, methods=["post"])
+    def create(self, request, *args, **kwargs):
         """Регистрация пользователя"""
         serializer = MyUserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response(
-            {"user_id": user.id, "email": user.email},
+            {
+                "id": user.id,
+                "email": user.email,
+                "username": user.username,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+            },
             status=status.HTTP_201_CREATED,
         )
 
     @login_required
     @action(detail=False, methods=["get"])
-    def get_users(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         """Получение списка всех пользователей"""
         users = User.objects.all()
         serializer = UserSerializer(users, many=True)

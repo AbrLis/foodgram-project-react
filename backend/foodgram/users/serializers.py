@@ -1,9 +1,10 @@
+from django.contrib.auth import get_user_model
+
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 
-from backend.foodgram.foodgram import settings
 
-User = settings.AUTH_USER_MODEL
+User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -32,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
 class MyUserChangePasswordSerializer(UserCreateSerializer):
     """Сериализатор для изменения пароля пользователя"""
 
-    class Meta(UserCreateSerializer.Meta):
+    class Meta(UserCreateSerializer):
         model = User
         fields = ("password", "new_password")
 
@@ -42,7 +43,6 @@ class MyUserCreateSerializer(UserCreateSerializer):
 
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
-    email = serializers.EmailField(required=True)
 
     class Meta(UserCreateSerializer.Meta):
         model = User

@@ -1,14 +1,19 @@
 from django.urls import path, re_path
 from djoser.views import TokenCreateView, TokenDestroyView
 
-from views import (
+from .views import (
     UserSignUpViewSet,
     UserDetailViewSet,
     UserChangePasswordViewSet,
 )
 
+app_name = "users"
+
 urlpatterns = [
-    path("users/", UserSignUpViewSet.as_view()),
+    path(
+        "users/",
+        UserSignUpViewSet.as_view({"post": "create", "get": "list"}),
+    ),
     re_path(
         r"^users/(?P<id>(\d+|me))/$",
         UserDetailViewSet.as_view({"get": "get_user"}),
