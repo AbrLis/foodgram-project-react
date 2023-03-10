@@ -31,6 +31,7 @@ class RecipeAdmin(admin.ModelAdmin):
     sortable_by = (
         "title",
         "author",
+        "tags"
     )
 
 
