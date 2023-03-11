@@ -4,8 +4,11 @@ from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet, TokenCreateView
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, \
+    RetrieveAPIView, get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .serializers import UserSerializer, MyUserCreateSerializer
@@ -57,37 +60,37 @@ class UserChangePasswordViewSet(UserViewSet):
         user = request.user
         serializer = self.get_serializer(data=request.data)
 
-        if serializer.is_valid():
-            new_password = serializer.validated_data["new_password"]
-            curent_password = serializer.validated_data["current_password"]
-
-            if not user.check_password(curent_password):
-                return Response(
-                    {"current_password": "Wrong password."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            user.set_password(new_password)
-            user.save()
-            return Response(
-                {"status": "password set"}, status=status.HTTP_204_NO_CONTENT
-            )
-        else:
+        if not serializer.is_valid():
             return Response(
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
 
+        new_password = serializer.validated_data["new_password"]
+        curent_password = serializer.validated_data["current_password"]
+        if not user.check_password(curent_password):
+            return Response(
+                {"current_password": "Wrong password."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user.set_password(new_password)
+        user.save()
+        return Response(
+            {"status": "password set"}, status=status.HTTP_204_NO_CONTENT
+        )
 
-class UserDetailViewSet(UserViewSet):
+
+class UserDetailViewSet(RetrieveAPIView):
     """Получение информации о пользователе по id"""
 
-    @login_required
-    @action(detail=False, methods=["get"])
-    def get_user(self, request, *args, **kwargs):
-        id_user = kwargs.get("id")
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get_object(self):
+        id_user = self.kwargs.get("id")
         if id_user == "me":
-            user = request.user
+            user = self.request.user
         else:
-            user = User.objects.get(pk=id_user)
-        serializer = UserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            user = get_object_or_404(User, pk=id_user)
+        return user

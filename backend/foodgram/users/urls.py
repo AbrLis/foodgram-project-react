@@ -17,7 +17,7 @@ urlpatterns = [
     ),
     re_path(
         r"^users/(?P<id>(\d+|me))/$",
-        UserDetailViewSet.as_view({"get": "get_user"}),
+        UserDetailViewSet.as_view(),
     ),
     path(
         "users/set_password/",
