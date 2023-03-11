@@ -1,42 +1,51 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from djoser.views import UserViewSet
+from djoser import utils
+from djoser.conf import settings
+from djoser.views import UserViewSet, TokenCreateView
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.response import Response
 
-from .serializers import MyUserCreateSerializer, UserSerializer
+from .serializers import UserSerializer, MyUserCreateSerializer
 
 User = get_user_model()
 
 
-class UserSignUpViewSet(UserViewSet):
-    """Класс api/users/ для регистрации и получения списка пользователей"""
+class UserCreateTokenViewSet(TokenCreateView):
+    """Класс api/auth/token/login/ для получения токена"""
 
-    # @action(detail=False, methods=["post"])
-    def create(self, request, *args, **kwargs):
-        """Регистрация пользователя"""
-        serializer = MyUserCreateSerializer(data=request.data)
+    def post(self, request, *args, **kwargs):
+        """Получение токена по email и паролю"""
+        username = User.objects.get(email=request.data["email"]).username
+        request.data["username"] = username
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        token = utils.login_user(self.request, serializer.user)
+        token_serializer_class = settings.SERIALIZERS.token
         return Response(
-            {
-                "id": user.id,
-                "email": user.email,
-                "username": user.username,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-            },
+            data=token_serializer_class(token).data,
             status=status.HTTP_201_CREATED,
         )
 
-    @login_required
-    @action(detail=False, methods=["get"])
-    def list(self, request, *args, **kwargs):
-        """Получение списка всех пользователей"""
-        users = User.objects.all()
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class UserSignUpViewSet(CreateAPIView, ListAPIView):
+    """Path api/users/ для регистрации и получения списка пользователей"""
+
+    queryset = User.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        """Создание пользователя"""
+        response = super().create(request, *args, **kwargs)
+        del response.data["password"]
+        return Response(response.data, status=status.HTTP_201_CREATED)
+
+    def get_serializer_class(self):
+        """Возвращает сериализатор для списка пользователей"""
+        if self.request.method == "GET":
+            return UserSerializer
+        return MyUserCreateSerializer
 
 
 class UserChangePasswordViewSet(UserViewSet):
