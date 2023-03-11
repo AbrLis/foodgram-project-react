@@ -18,10 +18,12 @@ urlpatterns = [
     re_path(
         r"^users/(?P<id>(\d+|me))/$",
         UserDetailViewSet.as_view(),
+        name="user_detail",
     ),
     path(
         "users/set_password/",
         UserChangePasswordViewSet.as_view({"post": "set_password"}),
+        name="change_password",
     ),
     path(
         "auth/token/login/",

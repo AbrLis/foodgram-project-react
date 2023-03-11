@@ -1,13 +1,16 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
 from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet, TokenCreateView
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
-from rest_framework.generics import CreateAPIView, ListAPIView, \
-    RetrieveAPIView, get_object_or_404
+from rest_framework.generics import (
+    CreateAPIView,
+    ListAPIView,
+    RetrieveAPIView,
+    get_object_or_404,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -54,10 +57,10 @@ class UserSignUpViewSet(CreateAPIView, ListAPIView):
 class UserChangePasswordViewSet(UserViewSet):
     """Изменение пароля пользователя"""
 
-    @login_required
-    @action(detail=False, methods=["post"])
+    @action(
+        detail=False, methods=["post"], permission_classes=[IsAuthenticated]
+    )
     def set_password(self, request, *args, **kwargs):
-        user = request.user
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
@@ -67,6 +70,7 @@ class UserChangePasswordViewSet(UserViewSet):
 
         new_password = serializer.validated_data["new_password"]
         curent_password = serializer.validated_data["current_password"]
+        user = request.user
         if not user.check_password(curent_password):
             return Response(
                 {"current_password": "Wrong password."},
