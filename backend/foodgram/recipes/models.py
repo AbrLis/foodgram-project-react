@@ -8,7 +8,7 @@ User = settings.AUTH_USER_MODEL
 class Tags(models.Model):
     """Модель тегов"""
 
-    title = models.CharField(
+    name = models.CharField(
         max_length=200,
         unique=True,
         null=False,
@@ -19,7 +19,7 @@ class Tags(models.Model):
         max_length=20,
         unique=True,
         null=False,
-        validators=[RegexValidator(r"^[0-9A-Fa-f]+$")],
+        validators=[RegexValidator(r"^#[0-9A-Fa-f]+$")],
         verbose_name="Цвет тега",
     )
     slug = models.SlugField(
@@ -33,10 +33,10 @@ class Tags(models.Model):
     class Meta:
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
-        ordering = ["title"]
+        ordering = ["name"]
 
     def __str__(self):
-        return self.title
+        return self.name
 
 
 class IngredientsList(models.Model):

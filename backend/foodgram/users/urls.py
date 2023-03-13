@@ -1,4 +1,4 @@
-from django.urls import path, re_path
+from django.urls import path, re_path, include
 from djoser.views import TokenDestroyView
 
 from .views import (
@@ -33,4 +33,6 @@ urlpatterns = [
     path(
         "auth/token/logout/", TokenDestroyView.as_view(), name="token_destroy"
     ),
+    # Перенаправлять остальные запросы в приложение api
+    path("", include("api.urls")),
 ]

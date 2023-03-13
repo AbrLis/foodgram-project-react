@@ -11,11 +11,11 @@ from .models import (
 class TagsAdmin(admin.ModelAdmin):
     """Админка тегов"""
 
-    list_display = ("title", "color", "slug")
-    search_fields = ("title",)
-    list_filter = ("title",)
+    list_display = ("name", "color", "slug")
+    search_fields = ("name",)
+    list_filter = ("name",)
     empty_value_display = "-пусто-"
-    sortable_by = ("title",)
+    sortable_by = ("name",)
 
 
 class RecipeAdmin(admin.ModelAdmin):

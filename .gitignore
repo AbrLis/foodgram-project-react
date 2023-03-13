@@ -1,3 +1,9 @@
+# Ignore migrations
+*/migrations/*
+/backend/foodgram/api/migrations/
+/backend/foodgram/users/migrations/
+/backend/foodgram/recipes/migrations/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
