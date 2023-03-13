@@ -1,8 +1,8 @@
 # praktikum_new_diplom
 
-Запись данных ингридиентов в базу данных через powershell
+Запись данных ингридиентов в базу данных через management command
 ```shell
-Get-Content .\recipes\utils.py | python .\manage.py shell
+python .\manage.py lo_in
 ```
 
 Спецификация API
