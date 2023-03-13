@@ -4,3 +4,4 @@ psycopg2-binary==2.9.5
 pillow==9.4.0
 djangorestframework==3.14
 djoser==2.1.0
+django-filter==22.1

@@ -22,10 +22,10 @@ class User(AbstractUser):
         max_length=254, unique=True, null=False, verbose_name="Почта"
     )
     first_name = models.CharField(
-        max_length=30, blank=True, null=False, verbose_name="Имя"
+        max_length=30, null=False, verbose_name="Имя"
     )
     last_name = models.CharField(
-        max_length=150, blank=True, null=False, verbose_name="Фамилия"
+        max_length=150, null=False, verbose_name="Фамилия"
     )
     groups = models.ManyToManyField(
         Group, verbose_name="Группы", related_name="user_grups", blank=True
