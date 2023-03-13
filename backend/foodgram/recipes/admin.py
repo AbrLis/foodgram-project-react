@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (
-    IngredientsList,
+    Ingredient,
     Recipes,
     Tags,
     SelectedRecipes,
@@ -22,14 +22,14 @@ class RecipeAdmin(admin.ModelAdmin):
     """Админка рецептов"""
 
     list_display = (
-        "title",
+        "name",
         "author",
     )
-    search_fields = ("title", "author")
-    list_filter = ("title",)
+    search_fields = ("name", "author")
+    list_filter = ("name",)
     empty_value_display = "-пусто-"
     sortable_by = (
-        "title",
+        "name",
         "author",
         "tags"
     )
@@ -69,4 +69,4 @@ class IngridientsListAdmin(admin.ModelAdmin):
 admin.site.register(Tags, TagsAdmin)
 admin.site.register(Recipes, RecipeAdmin)
 admin.site.register(SelectedRecipes, SelectedRecipesAdmin)
-admin.site.register(IngredientsList, IngridientsListAdmin)
+admin.site.register(Ingredient, IngridientsListAdmin)

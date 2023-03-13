@@ -1,8 +1,8 @@
-from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.db import models
 
-User = settings.AUTH_USER_MODEL
+User = get_user_model()
 
 
 class Tags(models.Model):
@@ -39,8 +39,8 @@ class Tags(models.Model):
         return self.name
 
 
-class IngredientsList(models.Model):
-    """Модель списка ингридиентов"""
+class Ingredient(models.Model):
+    """Модель ингридиента"""
 
     name = models.CharField(
         max_length=200,
@@ -60,10 +60,13 @@ class IngredientsList(models.Model):
         ordering = ["name"]
 
 
-class Ingregients(IngredientsList):
-    """Модель ингридиентов для рецептов"""
+class RecipeIngregient(models.Model):
+    """Модель ингридиента для рецепта"""
 
-    count_ingr = models.PositiveIntegerField(
+    ingredient = models.OneToOneField(
+        Ingredient, on_delete=models.CASCADE, primary_key=True
+    )
+    amount = models.PositiveIntegerField(
         null=False, verbose_name="Количество ингридиента"
     )
 
@@ -71,7 +74,7 @@ class Ingregients(IngredientsList):
 class Recipes(models.Model):
     """Модель рецептов"""
 
-    title = models.CharField(
+    name = models.CharField(
         max_length=200,
         unique=True,
         null=False,
@@ -88,7 +91,9 @@ class Recipes(models.Model):
     image = models.ImageField(
         upload_to="recipes/", null=False, verbose_name="Изображение рецепта"
     )
-    text = models.TextField(null=False, verbose_name="Текст рецепта")
+    text = models.TextField(
+        max_length=200, null=False, verbose_name="Текст рецепта"
+    )
     cooking_time = models.PositiveIntegerField(
         null=False, verbose_name="Время приготовления"
     )
@@ -103,7 +108,7 @@ class Recipes(models.Model):
         db_index=True,
     )
     ingredients = models.ManyToManyField(
-        Ingregients,
+        RecipeIngregient,
         blank=True,
         related_name="recipes",
         verbose_name="Ингридиенты",
@@ -112,7 +117,7 @@ class Recipes(models.Model):
     class Meta:
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
-        ordering = ["title"]
+        ordering = ["name"]
 
     def __str__(self):
         return self.title
