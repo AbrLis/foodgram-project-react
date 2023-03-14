@@ -20,7 +20,6 @@ class TagsAdmin(admin.ModelAdmin):
     sortable_by = ("name",)
 
 
-
 class RecipeAdmin(admin.ModelAdmin):
     """Админка рецептов"""
 

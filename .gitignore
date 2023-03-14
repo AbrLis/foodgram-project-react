@@ -4,7 +4,7 @@
 /backend/foodgram/users/migrations/
 /backend/foodgram/recipes/migrations/
 # Ignore media
-/media/*
+/backend/foodgram/media/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -138,3 +138,4 @@ dmypy.json
 
 # .idea
 .idea
+

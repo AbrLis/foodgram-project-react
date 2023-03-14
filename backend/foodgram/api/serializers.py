@@ -57,9 +57,9 @@ class RecipeSerializer(serializers.ModelSerializer):
     text = serializers.CharField(required=True)
     cooking_time = serializers.IntegerField(required=True, min_value=1)
     ingredients = RecipeIngredientSerializer(many=True)
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tags.objects.all(), many=True, required=True
-    )
+    tags = TagSerializer(many=True, read_only=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipes
@@ -72,6 +72,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             "image",
             "text",
             "cooking_time",
+            "is_favorited",
+            "is_in_shopping_cart",
         )
 
     def create(self, validated_data):
@@ -81,7 +83,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         validated_data["author"] = self.context["request"].user
 
         ingredients = validated_data.pop("ingredients")
-        tags = validated_data.pop("tags")
+        tags = self.initial_data.get("tags")
         recipe = Recipes.objects.create(**validated_data)
 
         recipe.tags.set(tags)
@@ -89,21 +91,21 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         return recipe
 
-    # def is_favorited(self, obj):
-    #     """Проверяет, добавлен ли рецепт в избранное"""
-    #     user = self.context["request"].user
-    #     return (
-    #         user.is_authenticated
-    #         and SelectedRecipes.objects.filter(user=user, recipe=obj).exists()
-    #     )
-    #
-    # def is_in_shopping_cart(self, obj):
-    #     """Проверяет, добавлен ли рецепт в список покупок"""
-    #     user = self.context["request"].user
-    #     return (
-    #         user.is_authenticated
-    #         and ShoppingList.objects.filter(user=user, recipe=obj).exists()
-    #     )
+    def get_is_favorited(self, obj):
+        """Проверяет, добавлен ли рецепт в избранное"""
+        user = self.context["request"].user
+        return (
+            user.is_authenticated
+            and SelectedRecipes.objects.filter(user=user, recipe=obj).exists()
+        )
+
+    def get_is_in_shopping_cart(self, obj):
+        """Проверяет, добавлен ли рецепт в список покупок"""
+        user = self.context["request"].user
+        return (
+            user.is_authenticated
+            and ShoppingList.objects.filter(user=user, recipe=obj).exists()
+        )
 
     def create_ingridients(self, recipe, ingredients):
         """Создает ингридиенты для рецепта"""
