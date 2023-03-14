@@ -59,16 +59,38 @@ class Ingredient(models.Model):
         verbose_name_plural = "Ингридиенты"
         ordering = ["name"]
 
+    def __str__(self):
+        return self.name
+
 
 class RecipeIngregient(models.Model):
     """Модель ингридиента для рецепта"""
 
-    ingredient = models.OneToOneField(
-        Ingredient, on_delete=models.CASCADE, primary_key=True
+    recipe = models.ForeignKey(
+        "Recipes",
+        on_delete=models.CASCADE,
+        verbose_name="Рецепт",
+        related_name="recipe_ingredients",
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        verbose_name="Ингридиент",
     )
     amount = models.PositiveIntegerField(
         null=False, verbose_name="Количество ингридиента"
     )
+
+    class Meta:
+        verbose_name = "Ингридиент для рецепта"
+        verbose_name_plural = "Ингридиенты для рецепта"
+        ordering = ["recipe"]
+
+    def __str__(self):
+        return (
+            f"{self.ingredient} - в количестве {self.amount} "
+            f"{self.ingredient.measurement_unit}"
+        )
 
 
 class Recipes(models.Model):
@@ -76,7 +98,6 @@ class Recipes(models.Model):
 
     name = models.CharField(
         max_length=200,
-        unique=True,
         null=False,
         verbose_name="Название рецепта",
         db_index=True,
@@ -120,7 +141,7 @@ class Recipes(models.Model):
         ordering = ["name"]
 
     def __str__(self):
-        return self.title
+        return self.name
 
 
 class SelectedRecipes(models.Model):
@@ -147,7 +168,7 @@ class SelectedRecipes(models.Model):
         ordering = ["user"]
 
     def __str__(self):
-        return self.user.username
+        return f"Пользователь {self.user.username} - {self.recipe.name}"
 
 
 class Follow(models.Model):
@@ -174,4 +195,37 @@ class Follow(models.Model):
         ordering = ["user"]
 
     def __str__(self):
-        return self.user.username
+        return (
+            f"Пользователь {self.user.username}"
+            f" подписан на {self.author.username}"
+        )
+
+
+class ShoppingList(models.Model):
+    """Модель списка покупок"""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=False,
+        related_name="shopping_list",
+        verbose_name="Пользователь",
+    )
+    recipe = models.ForeignKey(
+        Recipes,
+        on_delete=models.CASCADE,
+        null=False,
+        related_name="shopping_list",
+        verbose_name="Рецепт",
+    )
+
+    class Meta:
+        verbose_name = "Список покупок"
+        verbose_name_plural = "Списки покупок"
+        ordering = ["user"]
+
+    def __str__(self):
+        return (
+            f"Пользователь {self.user.username}"
+            f"хочет купить {self.recipe.name}"
+        )

@@ -58,7 +58,6 @@ class MyUserCreateSerializer(UserCreateSerializer):
             "first_name",
             "last_name",
             "password",
-            "is_subscribed",
         )
 
     def validate(self, attrs):

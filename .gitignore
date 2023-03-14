@@ -3,6 +3,8 @@
 /backend/foodgram/api/migrations/
 /backend/foodgram/users/migrations/
 /backend/foodgram/recipes/migrations/
+# Ignore media
+/media/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

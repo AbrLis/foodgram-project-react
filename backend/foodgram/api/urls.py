@@ -5,6 +5,7 @@ from .views import (
     GetTagsView,
     GetIngredientView,
     GetIngredientsView,
+    CreateRecipeView,
 )
 
 app_name = "api"
@@ -16,4 +17,5 @@ urlpatterns = [
     path(
         "ingredients/<int:id>/", GetIngredientView.as_view(), name="ingredient"
     ),
+    path("recipes/", CreateRecipeView.as_view(), name="recipes"),
 ]

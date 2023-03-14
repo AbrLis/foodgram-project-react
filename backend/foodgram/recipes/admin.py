@@ -1,10 +1,12 @@
 from django.contrib import admin
+from django import forms
 
 from .models import (
     Ingredient,
     Recipes,
     Tags,
     SelectedRecipes,
+    RecipeIngregient,
 )
 
 
@@ -18,6 +20,7 @@ class TagsAdmin(admin.ModelAdmin):
     sortable_by = ("name",)
 
 
+
 class RecipeAdmin(admin.ModelAdmin):
     """Админка рецептов"""
 
@@ -28,11 +31,7 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ("name", "author")
     list_filter = ("name",)
     empty_value_display = "-пусто-"
-    sortable_by = (
-        "name",
-        "author",
-        "tags"
-    )
+    sortable_by = ("name", "author", "tags")
 
 
 class SelectedRecipesAdmin(admin.ModelAdmin):
@@ -61,9 +60,7 @@ class IngridientsListAdmin(admin.ModelAdmin):
     search_fields = ("name",)
     list_filter = ("name",)
     empty_value_display = "-пусто-"
-    sortable_by = (
-        "name",
-    )
+    sortable_by = ("name",)
 
 
 admin.site.register(Tags, TagsAdmin)
