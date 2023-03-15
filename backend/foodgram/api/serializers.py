@@ -3,6 +3,7 @@ import datetime
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
@@ -30,22 +31,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = ("id", "name", "measurement_unit")
-
-
-class RecipeIngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для ингридиента для рецепта"""
-
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
-    name = serializers.CharField(source="id.name", read_only=True)
-    measurement_unit = serializers.CharField(
-        source="id.measurement_unit", read_only=True
-    )
-    amount = serializers.IntegerField(required=True, min_value=1)
-
-    class Meta:
-        model = Ingredient
-        fields = ("id", "name", "measurement_unit", "amount")
+        fields = "__all__"
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -56,7 +42,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     image = serializers.CharField(required=True)
     text = serializers.CharField(required=True)
     cooking_time = serializers.IntegerField(required=True, min_value=1)
-    ingredients = RecipeIngredientSerializer(many=True)
+    ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -80,16 +66,50 @@ class RecipeSerializer(serializers.ModelSerializer):
         """Создает рецепт с ингридиентами, тегами и картинкой в базе данных"""
 
         validated_data["image"] = self.save_image(validated_data["image"])
-        validated_data["author"] = self.context["request"].user
 
         ingredients = validated_data.pop("ingredients")
-        tags = self.initial_data.get("tags")
+        tags = validated_data.pop("tags")
         recipe = Recipes.objects.create(**validated_data)
 
         recipe.tags.set(tags)
-        recipe.ingredients.set(self.create_ingridients(recipe, ingredients))
+        self.create_ingridients(recipe, ingredients)
 
         return recipe
+
+    def validate(self, data):
+        """
+        Проверяет, что ингридиенты и теги указаны
+        и дополняет информацию об авторе
+        """
+
+        tags = self.initial_data.get("tags")
+        ingredients = self.initial_data.get("ingredients")
+
+        if not tags:
+            raise serializers.ValidationError("Необходимо указать теги")
+
+        if not ingredients:
+            raise serializers.ValidationError("Необходимо указать ингридиенты")
+
+        data.update(
+            {
+                "tags": tags,
+                "ingredients": ingredients,
+                "author": self.context.get("request").user,
+            }
+        )
+        return data
+
+    def get_ingredients(self, recipes):
+        """Формирует список ингридиентов для рецепта"""
+
+        ingredients = recipes.ingredients.values(
+            "id",
+            "name",
+            "measurement_unit",
+            amount=F("recipeingregient__amount"),
+        )
+        return ingredients
 
     def get_is_favorited(self, obj):
         """Проверяет, добавлен ли рецепт в избранное"""
@@ -108,17 +128,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def create_ingridients(self, recipe, ingredients):
-        """Создает ингридиенты для рецепта"""
-        ingredients_list = []
+        """Заполняет таблицу ингридиентов для рецепта"""
         for ingredient in ingredients:
-            x = RecipeIngregient.objects.create(
+            RecipeIngregient.objects.get_or_create(
                 recipe=recipe,
-                ingredient=ingredient["id"],
+                ingredient=Ingredient.objects.get(pk=ingredient["id"]),
                 amount=ingredient["amount"],
             )
-            x.save()
-            ingredients_list.append(x)
-        return ingredients_list
 
     def save_image(self, file):
         """Сохраняет картинку в файловую систему"""

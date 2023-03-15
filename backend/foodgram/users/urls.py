@@ -1,14 +1,13 @@
 from django.urls import path, re_path, include
-from djoser.views import TokenDestroyView
 
 from .views import (
     UserSignUpViewSet,
     UserDetailViewSet,
     UserChangePasswordViewSet,
-    UserCreateTokenViewSet,
 )
 
 app_name = "users"
+
 
 urlpatterns = [
     path(
@@ -25,14 +24,8 @@ urlpatterns = [
         UserChangePasswordViewSet.as_view({"post": "set_password"}),
         name="change_password",
     ),
-    path(
-        "auth/token/login/",
-        UserCreateTokenViewSet.as_view(),
-        name="token_create",
-    ),
-    path(
-        "auth/token/logout/", TokenDestroyView.as_view(), name="token_destroy"
-    ),
+    path("auth/", include("djoser.urls.authtoken")),
+
     # Перенаправлять остальные запросы в приложение api
     path("", include("api.urls")),
 ]

@@ -1,7 +1,5 @@
 from django.contrib.auth import get_user_model
-from djoser import utils
-from djoser.conf import settings
-from djoser.views import UserViewSet, TokenCreateView
+from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -17,23 +15,6 @@ from rest_framework.response import Response
 from .serializers import UserSerializer, MyUserCreateSerializer
 
 User = get_user_model()
-
-
-class UserCreateTokenViewSet(TokenCreateView):
-    """Класс api/auth/token/login/ для получения токена"""
-
-    def post(self, request, *args, **kwargs):
-        """Получение токена по email и паролю"""
-        username = User.objects.get(email=request.data["email"]).username
-        request.data["username"] = username
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        token = utils.login_user(self.request, serializer.user)
-        token_serializer_class = settings.SERIALIZERS.token
-        return Response(
-            data=token_serializer_class(token).data,
-            status=status.HTTP_201_CREATED,
-        )
 
 
 class UserSignUpViewSet(CreateAPIView, ListAPIView):

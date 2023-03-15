@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator, \
+    MaxValueValidator
 from django.db import models
+from django.db.models import UniqueConstraint, CheckConstraint, Q
 
 User = get_user_model()
 
@@ -78,7 +80,12 @@ class RecipeIngregient(models.Model):
         verbose_name="Ингридиент",
     )
     amount = models.PositiveIntegerField(
-        null=False, verbose_name="Количество ингридиента"
+        verbose_name="Количество ингридиента",
+        default=1,
+        validators=(
+            MinValueValidator(1),
+            MaxValueValidator(1000),
+        )
     )
 
     class Meta:
@@ -129,8 +136,8 @@ class Recipes(models.Model):
         db_index=True,
     )
     ingredients = models.ManyToManyField(
-        RecipeIngregient,
-        blank=True,
+        Ingredient,
+        through="RecipeIngregient",
         related_name="recipes",
         verbose_name="Ингридиенты",
     )
@@ -139,6 +146,16 @@ class Recipes(models.Model):
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
         ordering = ["name"]
+        constraints = (
+            UniqueConstraint(
+                fields=["name", "author"],
+                name="unique_recipe_for_author",
+            ),
+            CheckConstraint(
+                check=Q(name__length__gt=0),
+                name="recipe_name_not_empty",
+            )
+        )
 
     def __str__(self):
         return self.name

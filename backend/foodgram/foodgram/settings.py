@@ -131,6 +131,22 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Djoser settings
+DJOSER = {
+    "LOGIN_FIELD": "email",
+    "HIDE_USERS": False,
+    "PERMISSIONS": {
+        "user": ["api.permissions.IsAuthorOrReadOnly"],
+        "user_list": ["api.permissions.IsAuthorOrReadOnly"],
+    },
+    "SERIALIZERS": {
+        "user": "users.serializers.UserSerializer",
+        "user_create": "users.serializers.UserCreateSerializer",
+        "user_list": "users.serializers.UserListSerializer",
+        "current_user": "users.serializers.UserSerializer",
+    },
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
