@@ -1,5 +1,6 @@
 import base64
 import datetime
+from pathlib import Path
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -39,11 +40,11 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для рецептов"""
 
-    author = UserSerializer(read_only=True)
-    name = serializers.CharField(max_length=200, required=True)
-    image = serializers.CharField(required=True)
-    text = serializers.CharField(required=True)
-    cooking_time = serializers.IntegerField(required=True, min_value=1)
+    author = UserSerializer()
+    name = serializers.CharField(max_length=200)
+    image = serializers.CharField()
+    text = serializers.CharField()
+    cooking_time = serializers.IntegerField(min_value=1)
     ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = serializers.SerializerMethodField()
@@ -64,6 +65,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             "is_in_shopping_cart",
         )
 
+    # TODO: Проверить создание рецепта с пустыми полями и ингридиентами
+    #  меньше 1, так же с отсутствующими полями в связи с тем что убраны
+    #  требования к обязательным полям
     def create(self, validated_data):
         """Создает рецепт с ингридиентами, тегами и картинкой в базе данных"""
 
@@ -77,6 +81,35 @@ class RecipeSerializer(serializers.ModelSerializer):
         self.create_ingridients(recipe, ingredients)
 
         return recipe
+
+    def update(self, instance, validated_data):
+        """
+        Обновляет рецепт с ингридиентами, тегами и картинкой в базе данных
+        """
+        if "image" in validated_data:
+            # Удаляем старую картинку
+            image = Path(instance.image.path)
+            image.unlink()
+            # Сохраняем новую
+            instance.image = self.save_image(validated_data["image"])
+            validated_data.pop("image")
+
+        ingredients = validated_data.pop("ingredients")
+        tags = validated_data.pop("tags")
+
+        for key, value in validated_data.items():
+            if hasattr(instance, key):
+                setattr(instance, key, value)
+
+        if ingredients:
+            instance.ingredients.clear()
+            self.create_ingridients(instance, ingredients)
+        if tags:
+            instance.tags.clear()
+            instance.tags.set(tags)
+
+        instance.save()
+        return instance
 
     def validate(self, data):
         """

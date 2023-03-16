@@ -1,6 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator, MinValueValidator, \
-    MaxValueValidator
+from django.core.validators import (
+    RegexValidator,
+    MinValueValidator,
+    MaxValueValidator,
+)
 from django.db import models
 from django.db.models import UniqueConstraint, CheckConstraint, Q
 
@@ -83,9 +86,14 @@ class RecipeIngregient(models.Model):
         verbose_name="Количество ингридиента",
         default=1,
         validators=(
-            MinValueValidator(1),
-            MaxValueValidator(1000),
-        )
+            MinValueValidator(
+                1, message="Количество ингридиента не может быть меньше 1"
+            ),
+            MaxValueValidator(
+                1000,
+                message="Количество ингридиента не может быть больше 1000",
+            ),
+        ),
     )
 
     class Meta:
