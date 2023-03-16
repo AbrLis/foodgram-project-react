@@ -1,30 +1,18 @@
 from django.urls import path, re_path, include
+from rest_framework.routers import DefaultRouter
 
 from .views import (
-    UserSignUpViewSet,
-    UserDetailViewSet,
-    UserChangePasswordViewSet,
+    MyUserViewSet,
 )
 
 app_name = "users"
 
-# TODO: Переделать url на старндартные для djoser
+router = DefaultRouter()
+router.register("users", MyUserViewSet, basename="users")
+
 urlpatterns = [
-    path(
-        "users/",
-        UserSignUpViewSet.as_view(),
-    ),
-    re_path(
-        r"^users/(?P<id>(\d+|me))/$",
-        UserDetailViewSet.as_view(),
-        name="user_detail",
-    ),
-    path(
-        "users/set_password/",
-        UserChangePasswordViewSet.as_view({"post": "set_password"}),
-        name="change_password",
-    ),
     path("auth/", include("djoser.urls.authtoken")),
+    path("", include(router.urls)),
 
     # Перенаправлять остальные запросы в приложение api
     path("", include("api.urls")),

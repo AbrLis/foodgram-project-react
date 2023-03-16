@@ -31,14 +31,6 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class MyUserChangePasswordSerializer(UserCreateSerializer):
-    """Сериализатор для изменения пароля пользователя"""
-
-    class Meta(UserCreateSerializer):
-        model = User
-        fields = ("password", "new_password")
-
-
 class MyUserCreateSerializer(UserCreateSerializer):
     """Сериализатор для регистрации пользователя"""
 
@@ -53,11 +45,11 @@ class MyUserCreateSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
         model = User
         fields = (
+            "id",
             "email",
             "username",
             "first_name",
             "last_name",
-            "password",
         )
 
     def validate(self, attrs):
@@ -68,6 +60,3 @@ class MyUserCreateSerializer(UserCreateSerializer):
         if username:
             raise serializers.ValidationError("Username already exists")
         return attrs
-
-    def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
