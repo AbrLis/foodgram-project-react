@@ -17,6 +17,8 @@ from recipes.models import (
 )
 from users.serializers import UserSerializer
 
+from core import validators
+
 
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для тегов"""
@@ -87,6 +89,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         if not tags:
             raise serializers.ValidationError("Необходимо указать теги")
+        validators.tags_exist(tags)
 
         if not ingredients:
             raise serializers.ValidationError("Необходимо указать ингридиенты")

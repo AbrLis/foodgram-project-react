@@ -8,7 +8,7 @@ from .views import (
 
 app_name = "users"
 
-
+# TODO: Переделать url на старндартные для djoser
 urlpatterns = [
     path(
         "users/",

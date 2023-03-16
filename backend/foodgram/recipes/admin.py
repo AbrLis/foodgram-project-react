@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django import forms
 
 from .models import (
     Ingredient,
@@ -8,6 +7,13 @@ from .models import (
     SelectedRecipes,
     RecipeIngregient,
 )
+
+
+class IngredientInline(admin.TabularInline):
+    """Инлайн ингредиентов"""
+
+    model = RecipeIngregient
+    extra = 0
 
 
 class TagsAdmin(admin.ModelAdmin):
@@ -27,8 +33,11 @@ class RecipeAdmin(admin.ModelAdmin):
         "name",
         "author",
     )
-    search_fields = ("name", "author")
-    list_filter = ("name",)
+
+    raw_id_fields = ("author",)
+    search_fields = ("name", "author__username", "tags__name")
+    list_filter = ("name", "author__username", "tags__name")
+    inlines = (IngredientInline,)
     empty_value_display = "-пусто-"
     sortable_by = ("name", "author", "tags")
 

@@ -1,8 +1,8 @@
 from rest_framework import filters
 from rest_framework.generics import RetrieveAPIView, ListAPIView, CreateAPIView
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from .permissions import IsAuthorOrReadOnly, IsAdminOrReadOnly
 
@@ -12,15 +12,28 @@ from .serializers import (
     RecipeSerializer,
 )
 
-from recipes.models import Tags, Ingredient, SelectedRecipes, ShoppingList
+from recipes.models import (
+    Tags,
+    Ingredient,
+    SelectedRecipes,
+    ShoppingList,
+    Recipes,
+)
 
 
 # ----------------Обработка запросов рецептов----------------
-class CreateRecipeView(CreateAPIView):
-    """Создание рецепта"""
+class CreateRecipeView(ModelViewSet):
+    """Создание, список и получение рецепта"""
 
     serializer_class = RecipeSerializer
-    permission_classes = [IsAuthenticated]
+    queryset = Recipes.objects.all()
+
+    def get_permissions(self):
+        if self.action in ["update", "partial_update", "destroy"]:
+            self.permission_classes = [IsAuthorOrReadOnly]
+        else:
+            self.permission_classes = [AllowAny]
+        return super().get_permissions()
 
 
 # ----------------Получение ингридиентов с поиском----------------

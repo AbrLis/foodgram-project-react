@@ -13,9 +13,9 @@ router = DefaultRouter()
 
 router.register("tags", GetTagsView, basename="tags")
 router.register("ingredients", GetIngredientsView, basename="ingredients")
+router.register("recipes", CreateRecipeView, basename="recipes")
+
 
 urlpatterns = [
-    path("recipes/", CreateRecipeView.as_view(), name="recipes"),
-
     path("", include(router.urls)),
 ]

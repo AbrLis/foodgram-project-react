@@ -151,10 +151,6 @@ class Recipes(models.Model):
                 fields=["name", "author"],
                 name="unique_recipe_for_author",
             ),
-            CheckConstraint(
-                check=Q(name__length__gt=0),
-                name="recipe_name_not_empty",
-            )
         )
 
     def __str__(self):
