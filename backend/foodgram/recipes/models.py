@@ -5,7 +5,6 @@ from django.core.validators import (
     MaxValueValidator,
 )
 from django.db import models
-from django.db.models import UniqueConstraint, CheckConstraint, Q
 
 User = get_user_model()
 
@@ -155,7 +154,7 @@ class Recipes(models.Model):
         verbose_name_plural = "Рецепты"
         ordering = ["name"]
         constraints = (
-            UniqueConstraint(
+            models.UniqueConstraint(
                 fields=["name", "author"],
                 name="unique_recipe_for_author",
             ),
@@ -199,26 +198,36 @@ class Follow(models.Model):
         User,
         on_delete=models.CASCADE,
         null=False,
-        related_name="follower",
-        verbose_name="Подписчик",
+        related_name="subscriptions",
+        verbose_name="На кого подписан",
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         null=False,
-        related_name="following",
-        verbose_name="Автор",
+        related_name="subscribers",
+        verbose_name="Кто подписан",
     )
 
     class Meta:
         verbose_name = "Подписка"
         verbose_name_plural = "Подписки"
         ordering = ["user"]
+        constraints = (
+            models.UniqueConstraint(
+                fields=("author", "user"),
+                name="Можно подписаться лишь один раз на одного автора",
+            ),
+            models.CheckConstraint(
+                check=~models.Q(author=models.F("user")),
+                name="Нельзя подписаться на себя",
+            ),
+        )
 
     def __str__(self):
         return (
-            f"Пользователь {self.user.username}"
-            f" подписан на {self.author.username}"
+            f"Пользователь {self.author.username}"
+            f" подписан на {self.user.username}"
         )
 
 

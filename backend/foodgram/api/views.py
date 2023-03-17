@@ -11,6 +11,7 @@ from .serializers import (
     IngredientSerializer,
     RecipeSerializer,
 )
+from .paginators import PageLimitPagination
 
 from recipes.models import (
     Tags,
@@ -41,6 +42,7 @@ class GetIngredientsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     """Получение списка ингридиентов с возможностью поиска в начале строки"""
 
     queryset = Ingredient.objects.all()
+    pagination_class = PageLimitPagination
     serializer_class = IngredientSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [
@@ -56,5 +58,6 @@ class GetTagsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     """Получение списка тегов"""
 
     permission_classes = [IsAdminOrReadOnly]
+    pagination_class = PageLimitPagination
     queryset = Tags.objects.all()
     serializer_class = TagSerializer

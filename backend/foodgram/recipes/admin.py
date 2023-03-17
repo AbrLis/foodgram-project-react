@@ -6,7 +6,26 @@ from .models import (
     Tags,
     SelectedRecipes,
     RecipeIngregient,
+    Follow,
 )
+
+
+class FollowAdmin(admin.ModelAdmin):
+    """Админка подписок"""
+
+    list_display = (
+        "id",
+        "author",
+        "user",
+    )
+    search_fields = ("author", "user", )
+    list_filter = ("author",)
+    empty_value_display = "-пусто-"
+    sortable_by = (
+        "user",
+        "author",
+        "id",
+    )
 
 
 class IngredientInline(admin.TabularInline):
@@ -75,3 +94,4 @@ admin.site.register(Tags, TagsAdmin)
 admin.site.register(Recipes, RecipeAdmin)
 admin.site.register(SelectedRecipes, SelectedRecipesAdmin)
 admin.site.register(Ingredient, IngridientsListAdmin)
+admin.site.register(Follow, FollowAdmin)

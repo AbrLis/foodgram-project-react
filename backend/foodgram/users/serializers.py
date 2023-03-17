@@ -4,6 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 
+from recipes.models import Recipes
 
 User = get_user_model()
 
@@ -25,9 +26,10 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        user = self.context["request"].user
+        # user = self.context["request"].user
         return (
-            user.is_authenticated and user.follower.filter(author=obj).exists()
+            obj.is_authenticated
+            and obj.subscribers.filter(author=obj).exists()
         )
 
 
@@ -60,3 +62,55 @@ class MyUserCreateSerializer(UserCreateSerializer):
         if username:
             raise serializers.ValidationError("Username already exists")
         return attrs
+
+
+class SubcriptionRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для рецептов в подписках"""
+
+    class Meta:
+        model = Recipes
+        fields = (
+            "id",
+            "name",
+            "image",
+            "cooking_time",
+        )
+        read_only_fields = (
+            "id",
+            "name",
+            "image",
+            "cooking_time",
+        )
+
+
+class SubscriptionSerializer(UserSerializer):
+    """Сериализатор для подписок"""
+
+    recipes_count = serializers.SerializerMethodField()
+    recipes = SubcriptionRecipeSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+            "recipes",
+            "recipes_count",
+        )
+        read_only_fields = (
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+            "recipes",
+            "recipes_count",
+        )
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
