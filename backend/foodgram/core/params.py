@@ -12,3 +12,5 @@ class UrlParams(str, Enum):
     SHOP_CART = 'is_in_shopping_cart'
     # Параметр автора
     AUTHOR = 'author'
+    # Параметры лимита рецептов
+    RECIPES_LIMIT = 'recipes_limit'

@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from api.paginators import PageLimitPagination
 from users.serializers import SubscriptionSerializer
 from recipes.models import Follow
+from core.params import UrlParams
 
 User = get_user_model()
 
@@ -22,7 +23,7 @@ class MyUserViewSet(UserViewSet):
     def subscriptions(self, request, *args, **kwargs):
         """
         Возвращает пользователей, на которых подписан текущий пользователь.
-        В выдачу добавляются рецепты.
+        В выдачу добавляются рецепты ограниченные параметром recipes_limit.
         """
         if request.user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -31,6 +32,13 @@ class MyUserViewSet(UserViewSet):
         )
         page = self.paginate_queryset(queryset_user.order_by("id"))
         serializer = SubscriptionSerializer(page, many=True)
+
+        # Обработка параметра recipes_limit в запросе
+        params = request.query_params.get(UrlParams.RECIPES_LIMIT.value)
+        if params:
+            serializer.data[0]["recipes"] = serializer.data[0]["recipes"][
+                : int(params)
+            ]
         return self.get_paginated_response(serializer.data)
 
     @action(
