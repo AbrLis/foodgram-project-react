@@ -41,7 +41,7 @@ class MyUserCreateSerializer(UserCreateSerializer):
     email = serializers.EmailField(required=True)
     username = serializers.CharField(required=True)
     password = serializers.CharField(
-        required=True, validators=[validate_password]
+        required=True, validators=[validate_password], write_only=True
     )
 
     class Meta(UserCreateSerializer.Meta):
@@ -52,6 +52,7 @@ class MyUserCreateSerializer(UserCreateSerializer):
             "username",
             "first_name",
             "last_name",
+            "password",
         )
 
     def validate(self, attrs):
@@ -62,6 +63,13 @@ class MyUserCreateSerializer(UserCreateSerializer):
         if username:
             raise serializers.ValidationError("Username already exists")
         return attrs
+
+    def create(self, validated_data):
+        user = User(**validated_data)
+        user.set_password(validated_data["password"])
+        user.save()
+        validated_data.pop("password")
+        return user
 
 
 class SubcriptionRecipeSerializer(serializers.ModelSerializer):

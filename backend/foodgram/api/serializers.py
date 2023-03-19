@@ -5,7 +5,6 @@ from pathlib import Path
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db.models import F
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from recipes.models import (
