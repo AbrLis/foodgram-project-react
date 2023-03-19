@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from api.paginators import PageLimitPagination
 from users.serializers import SubscriptionSerializer
 from recipes.models import Follow
+from core.params import UrlParams
 
 User = get_user_model()
 
@@ -22,7 +23,7 @@ class MyUserViewSet(UserViewSet):
     def subscriptions(self, request, *args, **kwargs):
         """
         Возвращает пользователей, на которых подписан текущий пользователь.
-        В выдачу добавляются рецепты.
+        В выдачу добавляются рецепты ограниченные параметром recipes_limit.
         """
         if request.user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -31,7 +32,10 @@ class MyUserViewSet(UserViewSet):
         )
         page = self.paginate_queryset(queryset_user.order_by("id"))
         serializer = SubscriptionSerializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+
+        return self.get_paginated_response(
+            self.recipes_limit(request, serializer)
+        )
 
     @action(
         detail=True,
@@ -39,7 +43,8 @@ class MyUserViewSet(UserViewSet):
     )
     def subscribe(self, request, id, *args, **kwargs):
         """
-        Подписывает или удаляет подписку на автора рецептов.
+        Подписывает или удаляет подписку на автора рецептов с ограничением
+        в параметре recipes_limit.
         """
         if request.user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -59,7 +64,7 @@ class MyUserViewSet(UserViewSet):
                 )
             Follow(None, author.id, current_user.id).save()
             return Response(
-                SubscriptionSerializer(author).data,
+                self.recipes_limit(request, SubscriptionSerializer(author)),
                 status=status.HTTP_201_CREATED,
             )
 
@@ -68,3 +73,13 @@ class MyUserViewSet(UserViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def recipes_limit(self, request, serializer) -> SubscriptionSerializer:
+        """Обработка параметра recipes_limit в запросе"""
+
+        params = request.query_params.get(UrlParams.RECIPES_LIMIT.value)
+        if params:
+            serializer.data[0]["recipes"] = serializer.data[0]["recipes"][
+                : int(params)
+            ]
+        return serializer.data
