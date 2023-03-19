@@ -39,7 +39,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для рецептов"""
 
-    author = UserSerializer()
+    author = UserSerializer(read_only=True)
     name = serializers.CharField(max_length=200)
     image = serializers.CharField()
     text = serializers.CharField()
