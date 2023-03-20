@@ -46,6 +46,7 @@ class MyUserViewSet(UserViewSet):
         Подписывает или удаляет подписку на автора рецептов с ограничением
         в параметре recipes_limit.
         """
+        # TODO: Похожий код в api/views.py CreateRecipeView
         if request.user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 

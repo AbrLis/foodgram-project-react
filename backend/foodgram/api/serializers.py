@@ -36,6 +36,15 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class RecipeShortSerializer(serializers.ModelSerializer):
+    """Сериализатор для краткого отображения рецепта"""
+
+    class Meta:
+        model = Recipes
+        fields = ("id", "name", "image", "cooking_time")
+        read_only_fields = ("__all__",)
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для рецептов"""
 

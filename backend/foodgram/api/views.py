@@ -1,7 +1,11 @@
-from rest_framework import filters
+from django.db.models import Q, Sum
+from django.http import HttpResponse
+from rest_framework import filters, status
+from rest_framework.decorators import action
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from .permissions import IsAuthorOrReadOnly, IsAdminOrReadOnly
@@ -10,6 +14,7 @@ from .serializers import (
     TagSerializer,
     IngredientSerializer,
     RecipeSerializer,
+    RecipeShortSerializer,
 )
 from .paginators import PageLimitPagination
 
@@ -20,17 +25,19 @@ from recipes.models import (
     ShoppingList,
     Recipes,
 )
+from .mixins import AddManyToManyFieldMixin
 
 from core.params import UrlParams
 
 
 # ----------------Обработка запросов рецептов----------------
-class CreateRecipeView(ModelViewSet):
+class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
     """Создание, список и получение рецепта"""
 
     serializer_class = RecipeSerializer
     queryset = Recipes.objects.all()
     pagination_class = PageLimitPagination
+    serializers_for_mixin = RecipeShortSerializer
 
     def get_queryset(self):
         """Подготовка queryset для запросов params"""
@@ -69,6 +76,66 @@ class CreateRecipeView(ModelViewSet):
         else:
             self.permission_classes = [AllowAny]
         return super().get_permissions()
+
+    @action(
+        methods=["GET", "POST", "DELETE"],
+        detail=True,
+        permission_classes=[IsAuthenticated],
+    )
+    def favorite(self, request, pk=None):
+        """Добавление, удаление, выдача рецепта в список избранное"""
+
+        return self.delete_create_many_to_many(
+            pk, SelectedRecipes, Q(recipe__id=pk)
+        )
+
+    @action(
+        methods=["GET", "POST", "DELETE"],
+        detail=True,
+        permission_classes=[IsAuthenticated],
+    )
+    def shopping_cart(self, request, pk=None):
+        """Добавление, удаление, выдача рецепта в список покупок"""
+
+        return self.delete_create_many_to_many(
+            pk, ShoppingList, Q(recipe__id=pk)
+        )
+
+    @action(
+        methods=["GET"], detail=False, permission_classes=[IsAuthenticated]
+    )
+    def save_shopping_cart(self, request):
+        """Отдача пользователю списка покупок"""
+
+        user = self.request.user
+        if not user.shopping_list.exists():
+            return Response(
+                {"message": "Список покупок пуст"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        file_name = f"shopping_list_{user.username}.txt"
+        shopping_list = [f"Покупки пользователя {user.username}:\n"]
+
+        ingredients = (
+            Ingredient.objects.filter(
+                recipes__recipe__in_shopping_list__user=user
+            )
+            .values("name", "measurement_unit")
+            .annotate(amount=Sum("recipes__amount"))
+        )
+
+        for ingredient in ingredients:
+            shopping_list.append(
+                f'{ingredient["name"]} ({ingredient["measurement_unit"]});'
+                f' - {ingredient["amount"]}\n'
+            )
+
+        response = HttpResponse(
+            shopping_list, content_type="text/plain", charset="utf-8"
+        )
+        response["Content-Disposition"] = f'attachment; filename="{file_name}"'
+        return response
 
 
 # ----------------Получение ингридиентов с поиском----------------
