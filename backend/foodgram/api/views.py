@@ -83,7 +83,7 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         permission_classes=[IsAuthenticated],
     )
     def favorite(self, request, pk=None):
-        """Добавление, удаление, выдача рецепта в список избранное"""
+        """Добавление, удаление, рецепта в список избранных"""
 
         return self.delete_create_many_to_many(
             pk, SelectedRecipes, Q(recipe__id=pk)
@@ -104,7 +104,7 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
     @action(
         methods=["GET"], detail=False, permission_classes=[IsAuthenticated]
     )
-    def save_shopping_cart(self, request):
+    def download_shopping_cart(self, request):
         """Отдача пользователю списка покупок"""
 
         user = self.request.user
@@ -117,9 +117,15 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         file_name = f"shopping_list_{user.username}.txt"
         shopping_list = [f"Покупки пользователя {user.username}:\n"]
 
+        # Получаю ингридиеты для рецепта из списка покупок
+        shopping_list_recipes = Recipes.objects.filter(
+            in_shopping_list__user=user
+        )
+
+        # Объединия ингридиенты с одинаковым названием и единицей измерения
         ingredients = (
             Ingredient.objects.filter(
-                recipes__recipe__in_shopping_list__user=user
+                recipes__recipe__in=shopping_list_recipes
             )
             .values("name", "measurement_unit")
             .annotate(amount=Sum("recipes__amount"))

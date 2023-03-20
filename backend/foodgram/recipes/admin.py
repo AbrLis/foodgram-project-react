@@ -7,6 +7,7 @@ from .models import (
     SelectedRecipes,
     RecipeIngregient,
     Follow,
+    ShoppingList,
 )
 
 
@@ -18,7 +19,10 @@ class FollowAdmin(admin.ModelAdmin):
         "author",
         "user",
     )
-    search_fields = ("author", "user", )
+    search_fields = (
+        "author",
+        "user",
+    )
     list_filter = ("author",)
     empty_value_display = "-пусто-"
     sortable_by = (
@@ -62,7 +66,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 class SelectedRecipesAdmin(admin.ModelAdmin):
-    """Админка избранных рецептов"""
+    """Админка списка покупок"""
 
     list_display = (
         "user",
@@ -90,6 +94,18 @@ class IngridientsListAdmin(admin.ModelAdmin):
     sortable_by = ("name",)
 
 
+class ShoppingListAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "recipe",
+    )
+    search_fields = ("user", "recipe")
+    list_filter = ("user",)
+    empty_value_display = "-пусто-"
+    sortable_by = ("user", "recipe")
+
+
+admin.site.register(ShoppingList, ShoppingListAdmin)
 admin.site.register(Tags, TagsAdmin)
 admin.site.register(Recipes, RecipeAdmin)
 admin.site.register(SelectedRecipes, SelectedRecipesAdmin)
