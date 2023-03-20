@@ -245,7 +245,7 @@ class ShoppingList(models.Model):
         Recipes,
         on_delete=models.CASCADE,
         null=False,
-        related_name="shopping_list",
+        related_name="in_shopping_list",
         verbose_name="Рецепт",
     )
 

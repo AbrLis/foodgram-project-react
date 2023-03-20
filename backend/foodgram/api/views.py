@@ -1,4 +1,4 @@
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, F
 from django.http import HttpResponse
 from rest_framework import filters, status
 from rest_framework.decorators import action
@@ -117,24 +117,17 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         file_name = f"shopping_list_{user.username}.txt"
         shopping_list = [f"Покупки пользователя {user.username}:\n"]
 
-        # Получаю ингридиеты для рецепта из списка покупок
-        shopping_list_recipes = Recipes.objects.filter(
-            in_shopping_list__user=user
-        )
-
         # Объединия ингридиенты с одинаковым названием и единицей измерения
         ingredients = (
-            Ingredient.objects.filter(
-                recipes__recipe__in=shopping_list_recipes
-            )
-            .values("name", "measurement_unit")
-            .annotate(amount=Sum("recipes__amount"))
+            Ingredient.objects.filter(recipes__in_shopping_list__user=user)
+            .values("name", measurement=F("measurement_unit"))
+            .annotate(amount=Sum("recipeingregient__amount"))
         )
 
         for ingredient in ingredients:
             shopping_list.append(
-                f'{ingredient["name"]} ({ingredient["measurement_unit"]});'
-                f' - {ingredient["amount"]}\n'
+                f'{ingredient["name"]} {ingredient["amount"]}'
+                f' - ({ingredient["measurement"]}); \n'
             )
 
         response = HttpResponse(
