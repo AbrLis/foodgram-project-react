@@ -2,31 +2,56 @@ version: '3.3'
 
 volumes:
   foodgram_db:
+  static_dir:
+  media_dir:
 
 services:
 
   db:
     image: postgres:13.0-alpine
-    ports:
-      - "5432:5432"
+    restart: always
+#    ports:
+#      - "5432:5432"
     volumes:
       - foodgram_db:/var/lib/postgresql/data/
     env_file:
       - ../backend/foodgram/.env
 
 
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+  backend:
+    build: ../backend
+    ports:
+      - "8000:8000"
+    command: >
+      bash -c "cd ./foodgram/ &&
+      python manage.py migrate &&
+      python manage.py collectstatic --noinput &&
+      gunicorn --bind 0:8000 foodgram.wsgi"
     volumes:
-      - ../frontend/:/app/result_build/
+      - static_dir:/app/foodgram/static/
+      - media_dir:/app/foodgram/media/
+    depends_on:
+      - db
+    env_file:
+      - ../backend/foodgram/.env
+
+
+  frontend:
+    image: lisinka/frontend_foodgram:latest
+    volumes:
+      - ./:/app/result_build/
+
+
   nginx:
     image: nginx:1.19.3
     ports:
       - "80:80"
-      - "8000:8000"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../frontend/build:/usr/share/nginx/html/
+      - ./build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
+      - static_dir:/etc/nginx/html/static/
+      - media_dir:/etc/nginx/html/media/
+    depends_on:
+        - backend
+        - frontend

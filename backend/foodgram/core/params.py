@@ -14,3 +14,5 @@ class UrlParams(str, Enum):
     AUTHOR = 'author'
     # Параметры лимита рецептов
     RECIPES_LIMIT = 'recipes_limit'
+    # Параметры поиска по имени
+    NAME = 'name'

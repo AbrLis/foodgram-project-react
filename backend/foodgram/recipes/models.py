@@ -167,13 +167,6 @@ class Recipes(models.Model):
 class SelectedRecipes(models.Model):
     """Модель избранных рецептов"""
 
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        null=False,
-        related_name="selected_recipes",
-        verbose_name="Пользователь",
-    )
     recipe = models.ForeignKey(
         Recipes,
         on_delete=models.CASCADE,
@@ -181,6 +174,14 @@ class SelectedRecipes(models.Model):
         related_name="selected_recipes",
         verbose_name="Рецепт",
     )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=False,
+        related_name="selected_recipes",
+        verbose_name="Пользователь",
+    )
+
 
     class Meta:
         verbose_name = "Избранный рецепт"

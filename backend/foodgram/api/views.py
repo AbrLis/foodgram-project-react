@@ -86,7 +86,7 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         """Добавление, удаление, рецепта в список избранных"""
 
         return self.delete_create_many_to_many(
-            pk, SelectedRecipes, Q(recipe__id=pk)
+            pk, SelectedRecipes, Q(recipe=pk)
         )
 
     @action(
@@ -142,15 +142,17 @@ class GetIngredientsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     """Получение списка ингридиентов с возможностью поиска в начале строки"""
 
     queryset = Ingredient.objects.all()
-    pagination_class = PageLimitPagination
     serializer_class = IngredientSerializer
     permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-    ]
-    filterset_fields = ["name"]
-    search_fields = ["^name"]
+
+    def get_queryset(self):
+        """Подготовка queryset для запросов params"""
+
+        quryset = self.queryset
+        search = self.request.query_params.get(UrlParams.NAME.value)
+        if search:
+            quryset = quryset.filter(name__istartswith=search)
+        return quryset
 
 
 # ----------------Получение тегов----------------
@@ -158,6 +160,5 @@ class GetTagsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     """Получение списка тегов"""
 
     permission_classes = [IsAdminOrReadOnly]
-    pagination_class = PageLimitPagination
     queryset = Tags.objects.all()
     serializer_class = TagSerializer

@@ -53,6 +53,7 @@ class RecipeAdmin(admin.ModelAdmin):
     """Админка рецептов"""
 
     list_display = (
+        "id",
         "name",
         "author",
     )
@@ -62,7 +63,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ("name", "author__username", "tags__name")
     inlines = (IngredientInline,)
     empty_value_display = "-пусто-"
-    sortable_by = ("name", "author", "tags")
+    sortable_by = ("id", "name", "author", "tags")
 
 
 class SelectedRecipesAdmin(admin.ModelAdmin):
