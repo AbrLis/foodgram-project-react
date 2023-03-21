@@ -73,9 +73,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             "is_in_shopping_cart",
         )
 
-    # TODO: Проверить создание рецепта с пустыми полями и ингридиентами
-    #  меньше 1, так же с отсутствующими полями в связи с тем что убраны
-    #  требования к обязательным полям
     def create(self, validated_data):
         """Создает рецепт с ингридиентами, тегами и картинкой в базе данных"""
 
@@ -135,6 +132,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         if not ingredients:
             raise serializers.ValidationError("Необходимо указать ингридиенты")
 
+        validators.inrg_exist(ingredients)
         data.update(
             {
                 "tags": tags,
