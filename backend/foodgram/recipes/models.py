@@ -194,20 +194,21 @@ class SelectedRecipes(models.Model):
 class Follow(models.Model):
     """Модель подписок"""
 
-    user = models.ForeignKey(
+    author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         null=False,
         related_name="subscriptions",
         verbose_name="На кого подписан",
     )
-    author = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         null=False,
         related_name="subscribers",
         verbose_name="Кто подписан",
     )
+
 
     class Meta:
         verbose_name = "Подписка"

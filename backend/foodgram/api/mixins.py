@@ -14,12 +14,12 @@ class AddManyToManyFieldMixin:
     ):
         object_data = get_object_or_404(self.queryset, id=object_idx)
         connections = model_object.objects.filter(
-            filters_object & Q(user=self.request.user)
+            Q(user=self.request.user) & filters_object
         )
         serializer = self.serializers_for_mixin(object_data)
 
         if (self.request.method in ("POST", "GET")) and not connections:
-            model_object(None, self.request.user.id, object_data.id).save()
+            model_object(None, object_data.id, self.request.user.id).save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if (self.request.method in ("DELETE",)) and connections:

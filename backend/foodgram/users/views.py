@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from api.mixins import AddManyToManyFieldMixin
 from api.paginators import PageLimitPagination
 from users.serializers import SubscriptionSerializer
 from recipes.models import Follow
@@ -14,10 +15,11 @@ from core.params import UrlParams
 User = get_user_model()
 
 
-class MyUserViewSet(UserViewSet):
+class MyUserViewSet(UserViewSet, AddManyToManyFieldMixin):
     """Обработка запросов к модели User"""
 
     pagination_class = PageLimitPagination
+    serializers_for_mixin = SubscriptionSerializer
 
     @action(detail=False, methods=("get",), url_path="subscriptions")
     def subscriptions(self, request, *args, **kwargs):
@@ -28,14 +30,23 @@ class MyUserViewSet(UserViewSet):
         if request.user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         queryset_user = User.objects.filter(
-            id__in=Follow.objects.select_related("author").values("user")
+            id__in=Follow.objects.select_related("user").values("author")
         )
         page = self.paginate_queryset(queryset_user.order_by("id"))
         serializer = SubscriptionSerializer(page, many=True)
 
-        return self.get_paginated_response(
-            self.recipes_limit(request, serializer)
-        )
+        params = request.query_params.get(UrlParams.RECIPES_LIMIT.value)
+
+        try:
+            if params:
+                serializer.data[0]["recipes"] = serializer.data[0]["recipes"][
+                    : int(params)
+                ]
+        except IndexError:
+            # Обработка случая пустого списка рецептов
+            pass
+
+        return self.get_paginated_response(serializer.data)
 
     @action(
         detail=True,
@@ -46,41 +57,20 @@ class MyUserViewSet(UserViewSet):
         Подписывает или удаляет подписку на автора рецептов с ограничением
         в параметре recipes_limit.
         """
-        # TODO: Похожий код в api/views.py CreateRecipeView
-        if request.user.is_anonymous:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        author = get_object_or_404(User, id=id)
-        current_user = self.request.user
-
-        connection = Follow.objects.filter(
-            Q(author=current_user) & Q(user=author)
+        request_response = self.delete_create_many_to_many(
+            id, Follow, Q(author=id)
         )
 
-        if (request.method in ("POST",)) and not connection:
-            if author == current_user:
-                return Response(
-                    {"error": "You can't subscribe to yourself"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            Follow(None, author.id, current_user.id).save()
-            return Response(
-                self.recipes_limit(request, SubscriptionSerializer(author)),
-                status=status.HTTP_201_CREATED,
-            )
-
-        if (request.method in ("DELETE",)) and connection:
-            connection[0].delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    def recipes_limit(self, request, serializer) -> SubscriptionSerializer:
-        """Обработка параметра recipes_limit в запросе"""
-
         params = request.query_params.get(UrlParams.RECIPES_LIMIT.value)
-        if params:
-            serializer.data[0]["recipes"] = serializer.data[0]["recipes"][
-                : int(params)
-            ]
-        return serializer.data
+
+        if (
+            params
+            and request.method == "POST"
+            and request_response.status_code == 201
+            and request_response.data.get("recipes")
+        ):
+            request_response.data["recipes"] = request_response.data[
+                "recipes"
+            ][: int(params)]
+
+        return request_response

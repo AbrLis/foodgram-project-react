@@ -16,12 +16,12 @@ class FollowAdmin(admin.ModelAdmin):
 
     list_display = (
         "id",
-        "author",
         "user",
+        "author",
     )
     search_fields = (
-        "author",
         "user",
+        "author",
     )
     list_filter = ("author",)
     empty_value_display = "-пусто-"
@@ -95,6 +95,8 @@ class IngridientsListAdmin(admin.ModelAdmin):
 
 
 class ShoppingListAdmin(admin.ModelAdmin):
+    """Админка списка покупок"""
+
     list_display = (
         "user",
         "recipe",
