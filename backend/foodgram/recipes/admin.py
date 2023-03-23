@@ -1,13 +1,13 @@
 from django.contrib import admin
 
 from .models import (
-    Ingredient,
-    Recipes,
-    Tags,
-    SelectedRecipes,
-    RecipeIngregient,
     Follow,
+    Ingredient,
+    RecipeIngregient,
+    Recipes,
+    SelectedRecipes,
     ShoppingList,
+    Tags,
 )
 
 
@@ -56,14 +56,44 @@ class RecipeAdmin(admin.ModelAdmin):
         "id",
         "name",
         "author",
+        "get_count_selected_recipes",
+    )
+    fields = (
+        ("name", "cooking_time"),
+        ("author", "tags"),
+        ("text",),
     )
 
     raw_id_fields = ("author",)
-    search_fields = ("name", "author__username", "tags__name")
-    list_filter = ("name", "author__username", "tags__name")
+    search_fields = (
+        "name",
+        "author__username",
+        "tags__name",
+    )
+    list_filter = (
+        "name",
+        "author__username",
+        "tags__name",
+    )
     inlines = (IngredientInline,)
+    sortable_by = (
+        "id",  # идентификатор рецепта
+        "name",  # название рецепта
+        "author",  # автор рецепта
+        "tags",  # теги рецепта
+    )
+
     empty_value_display = "-пусто-"
-    sortable_by = ("id", "name", "author", "tags")
+
+    def get_count_selected_recipes(self, obj):
+        """
+        Возвращает количество пользователей, добавивших рецепт в избранное
+        """
+        return SelectedRecipes.objects.filter(recipe=obj).count()
+
+    get_count_selected_recipes.short_description = (
+        "В избранном у пользователей"
+    )
 
 
 class SelectedRecipesAdmin(admin.ModelAdmin):

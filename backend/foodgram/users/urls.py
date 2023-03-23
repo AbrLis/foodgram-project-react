@@ -1,9 +1,7 @@
-from django.urls import path, re_path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import (
-    MyUserViewSet,
-)
+from .views import MyUserViewSet
 
 app_name = "users"
 

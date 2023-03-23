@@ -2,7 +2,6 @@ from pathlib import Path
 
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
-
 from recipes.models import Recipes
 
 
@@ -13,4 +12,3 @@ def delete_old_image(sender, instance, **kwargs):
     image_path = Path(instance.image.path)
     if image_path.exists():
         image_path.unlink()
-

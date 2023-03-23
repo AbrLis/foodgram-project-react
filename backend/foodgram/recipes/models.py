@@ -1,9 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import (
-    RegexValidator,
-    MinValueValidator,
-    MaxValueValidator,
-)
+from django.core.validators import (MaxValueValidator, MinValueValidator,
+                                    RegexValidator)
 from django.db import models
 
 User = get_user_model()
@@ -133,7 +130,10 @@ class Recipes(models.Model):
         null=False, verbose_name="Время приготовления"
     )
     pub_date = models.DateTimeField(
-        auto_now_add=True, null=False, verbose_name="Дата публикации"
+        auto_now_add=True,
+        null=False,
+        verbose_name="Дата публикации",
+        db_index=True,
     )
     tags = models.ManyToManyField(
         Tags,
@@ -152,7 +152,7 @@ class Recipes(models.Model):
     class Meta:
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
-        ordering = ["name"]
+        ordering = ["-pub_date"]
         constraints = (
             models.UniqueConstraint(
                 fields=["name", "author"],
@@ -182,7 +182,6 @@ class SelectedRecipes(models.Model):
         verbose_name="Пользователь",
     )
 
-
     class Meta:
         verbose_name = "Избранный рецепт"
         verbose_name_plural = "Избранные рецепты"
@@ -209,7 +208,6 @@ class Follow(models.Model):
         related_name="subscribers",
         verbose_name="Кто подписан",
     )
-
 
     class Meta:
         verbose_name = "Подписка"
@@ -250,7 +248,6 @@ class ShoppingList(models.Model):
         related_name="shopping_list",
         verbose_name="Пользователь",
     )
-
 
     class Meta:
         verbose_name = "Список покупок"

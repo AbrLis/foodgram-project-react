@@ -1,10 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-
 from djoser.serializers import UserCreateSerializer
-from rest_framework import serializers
-
 from recipes.models import Recipes
+from rest_framework import serializers
 
 User = get_user_model()
 

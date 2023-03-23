@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from recipes.models import Tags, Ingredient
+from recipes.models import Tags
 
 
 def tags_exist(tags: list[int]):

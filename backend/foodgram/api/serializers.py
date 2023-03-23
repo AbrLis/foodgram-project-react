@@ -1,20 +1,12 @@
 from pathlib import Path
 
-from django.db.models import F
-from rest_framework import serializers
-from drf_extra_fields.fields import Base64ImageField
-
-from recipes.models import (
-    Tags,
-    Ingredient,
-    Recipes,
-    RecipeIngregient,
-    ShoppingList,
-    SelectedRecipes,
-)
-from users.serializers import UserSerializer
-
 from core import validators
+from django.db.models import F
+from drf_extra_fields.fields import Base64ImageField
+from recipes.models import (Ingredient, RecipeIngregient, Recipes,
+                            SelectedRecipes, ShoppingList, Tags)
+from rest_framework import serializers
+from users.serializers import UserSerializer
 
 
 class TagSerializer(serializers.ModelSerializer):

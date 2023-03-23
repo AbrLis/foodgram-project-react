@@ -1,15 +1,14 @@
+from api.mixins import AddManyToManyFieldMixin
+from api.paginators import PageLimitPagination
+from core.params import UrlParams
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from djoser.views import UserViewSet
+from recipes.models import Follow
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from api.mixins import AddManyToManyFieldMixin
-from api.paginators import PageLimitPagination
-from users.serializers import SubscriptionSerializer, UserSerializer
-from recipes.models import Follow
-from core.params import UrlParams
+from users.serializers import SubscriptionSerializer
 
 User = get_user_model()
 
