@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from django.core.files.storage import default_storage
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 

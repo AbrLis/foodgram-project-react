@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
@@ -8,7 +7,7 @@ from rest_framework.response import Response
 
 from api.mixins import AddManyToManyFieldMixin
 from api.paginators import PageLimitPagination
-from users.serializers import SubscriptionSerializer
+from users.serializers import SubscriptionSerializer, UserSerializer
 from recipes.models import Follow
 from core.params import UrlParams
 
@@ -20,6 +19,11 @@ class MyUserViewSet(UserViewSet, AddManyToManyFieldMixin):
 
     pagination_class = PageLimitPagination
     serializers_for_mixin = SubscriptionSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 
     @action(detail=False, methods=("get",), url_path="subscriptions")
     def subscriptions(self, request, *args, **kwargs):

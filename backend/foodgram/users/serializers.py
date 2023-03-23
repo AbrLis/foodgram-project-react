@@ -26,9 +26,10 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
     def get_is_subscribed(self, obj):
+        user = self.context.get("request").user
         return (
-            obj.is_authenticated
-            and obj.subscribers.filter(author=obj).exists()
+            user.is_authenticated
+            and user.subscribers.filter(author=obj).exists()
         )
 
 
@@ -82,12 +83,7 @@ class SubcriptionRecipeSerializer(serializers.ModelSerializer):
             "image",
             "cooking_time",
         )
-        read_only_fields = (
-            "id",
-            "name",
-            "image",
-            "cooking_time",
-        )
+        read_only_fields = ("__all__",)
 
 
 class SubscriptionSerializer(UserSerializer):
@@ -108,16 +104,10 @@ class SubscriptionSerializer(UserSerializer):
             "recipes",
             "recipes_count",
         )
-        read_only_fields = (
-            "id",
-            "username",
-            "email",
-            "first_name",
-            "last_name",
-            "is_subscribed",
-            "recipes",
-            "recipes_count",
-        )
+        read_only_fields = ("__all__",)
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
+
+    def get_is_subscribed(self, obj):
+        return True

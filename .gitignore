@@ -5,6 +5,7 @@
 /backend/foodgram/recipes/migrations/
 # Ignore media
 /backend/foodgram/media/
+/infra/build/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

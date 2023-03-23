@@ -228,21 +228,14 @@ class Follow(models.Model):
 
     def __str__(self):
         return (
-            f"Пользователь {self.author.username}"
-            f" подписан на {self.user.username}"
+            f"Пользователь {self.user.username}"
+            f" подписан на {self.author.username}"
         )
 
 
 class ShoppingList(models.Model):
     """Модель списка покупок"""
 
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        null=False,
-        related_name="shopping_list",
-        verbose_name="Пользователь",
-    )
     recipe = models.ForeignKey(
         Recipes,
         on_delete=models.CASCADE,
@@ -250,6 +243,14 @@ class ShoppingList(models.Model):
         related_name="in_shopping_list",
         verbose_name="Рецепт",
     )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=False,
+        related_name="shopping_list",
+        verbose_name="Пользователь",
+    )
+
 
     class Meta:
         verbose_name = "Список покупок"

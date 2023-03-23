@@ -16,3 +16,7 @@ class UrlParams(str, Enum):
     RECIPES_LIMIT = 'recipes_limit'
     # Параметры поиска по имени
     NAME = 'name'
+    # True
+    IS_TRUE = '1'
+    # False
+    IS_FALSE = '0'

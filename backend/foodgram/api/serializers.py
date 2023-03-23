@@ -1,11 +1,8 @@
-import base64
-import datetime
 from pathlib import Path
 
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 from django.db.models import F
 from rest_framework import serializers
+from drf_extra_fields.fields import Base64ImageField
 
 from recipes.models import (
     Tags,
@@ -50,7 +47,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     author = UserSerializer(read_only=True)
     name = serializers.CharField(max_length=200)
-    image = serializers.CharField()
+    image = Base64ImageField()
     text = serializers.CharField()
     cooking_time = serializers.IntegerField(min_value=1)
     ingredients = serializers.SerializerMethodField()
@@ -76,7 +73,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Создает рецепт с ингридиентами, тегами и картинкой в базе данных"""
 
-        validated_data["image"] = self.save_image(validated_data["image"])
+        # validated_data["image"] = self.save_image(validated_data["image"])
 
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
@@ -96,8 +93,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             image = Path(instance.image.path)
             image.unlink()
             # Сохраняем новую
-            instance.image = self.save_image(validated_data["image"])
-            validated_data.pop("image")
+            # instance.image = self.save_image(validated_data["image"])
+            # validated_data.pop("image")
 
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
@@ -177,20 +174,3 @@ class RecipeSerializer(serializers.ModelSerializer):
                 ingredient=Ingredient.objects.get(pk=ingredient["id"]),
                 amount=ingredient["amount"],
             )
-
-    def save_image(self, file):
-        """Сохраняет картинку в файловую систему"""
-        domain = self.context["request"].get_host()
-        file = self.convert_base64_to_image(file)
-        default_storage.save(file.name, file)
-        media_url = default_storage.url(file.name)
-        return f"http://{domain}{media_url}"
-
-    def convert_base64_to_image(self, image_data):
-        """Преобразует base64 строку в объект изображения"""
-        format_img, imgstr = image_data.split(";base64,")
-        ext = format_img.split("/")[-1]
-        time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        name = f"recipe_image_{time}.{ext}"
-        image = ContentFile(base64.b64decode(imgstr), name=name)
-        return image

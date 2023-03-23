@@ -18,7 +18,7 @@ class AddManyToManyFieldMixin:
         )
         serializer = self.serializers_for_mixin(object_data)
 
-        if (self.request.method in ("POST", "GET")) and not connections:
+        if (self.request.method in ("POST",)) and not connections:
             model_object(None, object_data.id, self.request.user.id).save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 

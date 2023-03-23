@@ -26,7 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", default="django-i")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
+# DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*", "0.0.0.0"]
 
@@ -68,6 +70,8 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ],
+    "DEFAULT_PAGINATION_CLASS": "api.paginators.PageLimitPagination",
+    "PAGE_SIZE": 6,
 }
 
 TEMPLATES = [
@@ -155,7 +159,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
-# STATIC_ROOT = BASE_DIR / "static"
+STATIC_ROOT = BASE_DIR / "static"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")

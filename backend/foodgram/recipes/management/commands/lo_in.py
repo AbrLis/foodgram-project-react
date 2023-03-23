@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write("Loading ingredients...")
-        path_to_csv = "../../data/ingredients.csv"
+        path_to_csv = "./data/ingredients.csv"
         with open(path_to_csv, "r", encoding="utf-8") as f:
             reader = csv.reader(f)
             for row in reader:

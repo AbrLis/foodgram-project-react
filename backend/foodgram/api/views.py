@@ -1,9 +1,8 @@
 from django.db.models import Q, Sum, F
 from django.http import HttpResponse
-from rest_framework import filters, status
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import RetrieveAPIView, ListAPIView
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -43,7 +42,7 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         """Подготовка queryset для запросов params"""
 
         quryset = self.queryset
-        tags = self.request.query_params.get(UrlParams.TAGS.value)
+        tags = self.request.query_params.getlist(UrlParams.TAGS.value)
         if tags:
             quryset = quryset.filter(tags__slug__in=tags).distinct()
 
@@ -56,17 +55,17 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
 
         # Обработка параметров для списка покупок
         in_shop_cart = self.request.query_params.get(UrlParams.SHOP_CART.value)
-        if in_shop_cart:
-            quryset = quryset.filter(shoppinglist__user=self.request.user)
-        elif in_shop_cart is False:
-            quryset = quryset.exclude(shoppinglist__user=self.request.user)
+        if in_shop_cart == UrlParams.IS_TRUE.value:
+            quryset = quryset.filter(in_shopping_list__user=self.request.user)
+        elif in_shop_cart == UrlParams.IS_FALSE.value:
+            quryset = quryset.exclude(in_shopping_list__user=self.request.user)
 
         # Обработка параметров для избранных рецептов
         in_favorites = self.request.query_params.get(UrlParams.FAVORITE.value)
-        if in_favorites:
-            quryset = quryset.filter(selectedrecipes__user=self.request.user)
-        elif in_favorites is False:
-            quryset = quryset.exclude(selectedrecipes__user=self.request.user)
+        if in_favorites == UrlParams.IS_TRUE.value:
+            quryset = quryset.filter(selected_recipes__user=self.request.user)
+        elif in_favorites == UrlParams.IS_FALSE.value:
+            quryset = quryset.exclude(selected_recipes__user=self.request.user)
 
         return quryset
 
@@ -144,6 +143,7 @@ class GetIngredientsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = [IsAdminOrReadOnly]
+    pagination_class = None
 
     def get_queryset(self):
         """Подготовка queryset для запросов params"""
@@ -162,3 +162,4 @@ class GetTagsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     permission_classes = [IsAdminOrReadOnly]
     queryset = Tags.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
