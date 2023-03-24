@@ -1,14 +1,7 @@
 from django.contrib import admin
 
-from .models import (
-    Follow,
-    Ingredient,
-    RecipeIngregient,
-    Recipes,
-    SelectedRecipes,
-    ShoppingList,
-    Tags,
-)
+from .models import (Follow, Ingredient, RecipeIngregient, Recipes,
+                     SelectedRecipes, ShoppingList, Tags)
 
 
 class FollowAdmin(admin.ModelAdmin):

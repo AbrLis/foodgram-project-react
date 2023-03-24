@@ -1,11 +1,12 @@
 from pathlib import Path
 
-from core import validators
 from django.db.models import F
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
+
+from core import validators
 from recipes.models import (Ingredient, RecipeIngregient, Recipes,
                             SelectedRecipes, ShoppingList, Tags)
-from rest_framework import serializers
 from users.serializers import UserSerializer
 
 
@@ -38,10 +39,10 @@ class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для рецептов"""
 
     author = UserSerializer(read_only=True)
-    name = serializers.CharField(max_length=200)
+    # name = serializers.CharField(max_length=200)
     image = Base64ImageField()
-    text = serializers.CharField()
-    cooking_time = serializers.IntegerField(min_value=1)
+    # text = serializers.CharField()
+    # cooking_time = serializers.IntegerField(min_value=1)
     ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = serializers.SerializerMethodField()
@@ -65,8 +66,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Создает рецепт с ингридиентами, тегами и картинкой в базе данных"""
 
-        # validated_data["image"] = self.save_image(validated_data["image"])
-
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
         recipe = Recipes.objects.create(**validated_data)
@@ -84,9 +83,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             # Удаляем старую картинку
             image = Path(instance.image.path)
             image.unlink()
-            # Сохраняем новую
-            # instance.image = self.save_image(validated_data["image"])
-            # validated_data.pop("image")
 
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")

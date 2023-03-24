@@ -5,13 +5,13 @@ from .views import CreateRecipeView, GetIngredientsView, GetTagsView
 
 app_name = "api"
 
-router = DefaultRouter()
+router_v1 = DefaultRouter()
 
-router.register("tags", GetTagsView, basename="tags")
-router.register("ingredients", GetIngredientsView, basename="ingredients")
-router.register("recipes", CreateRecipeView, basename="recipes")
+router_v1.register("tags", GetTagsView, basename="tags")
+router_v1.register("ingredients", GetIngredientsView, basename="ingredients")
+router_v1.register("recipes", CreateRecipeView, basename="recipes")
 
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("", include(router_v1.urls)),
 ]

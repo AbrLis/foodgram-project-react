@@ -1,14 +1,15 @@
-from core.params import UrlParams
 from django.db.models import F, Q, Sum
 from django.http import HttpResponse
-from recipes.models import (Ingredient, Recipes, SelectedRecipes, ShoppingList,
-                            Tags)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
+
+from core.params import UrlParams
+from recipes.models import (Ingredient, Recipes, SelectedRecipes, ShoppingList,
+                            Tags)
 
 from .mixins import AddManyToManyFieldMixin
 from .paginators import PageLimitPagination
@@ -58,16 +59,16 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         return quryset
 
     def get_permissions(self):
-        if self.action in ["update", "partial_update", "destroy"]:
-            self.permission_classes = [IsAuthorOrReadOnly]
+        if self.action in ("update", "partial_update", "destroy"):
+            self.permission_classes = (IsAuthorOrReadOnly,)
         else:
-            self.permission_classes = [AllowAny]
+            self.permission_classes = (AllowAny,)
         return super().get_permissions()
 
     @action(
-        methods=["GET", "POST", "DELETE"],
+        methods=("GET", "POST", "DELETE"),
         detail=True,
-        permission_classes=[IsAuthenticated],
+        permission_classes=(IsAuthenticated,),
     )
     def favorite(self, request, pk=None):
         """Добавление, удаление, рецепта в список избранных"""
@@ -77,9 +78,9 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         )
 
     @action(
-        methods=["GET", "POST", "DELETE"],
+        methods=("GET", "POST", "DELETE"),
         detail=True,
-        permission_classes=[IsAuthenticated],
+        permission_classes=(IsAuthenticated,),
     )
     def shopping_cart(self, request, pk=None):
         """Добавление, удаление, выдача рецепта в список покупок"""
@@ -89,7 +90,7 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         )
 
     @action(
-        methods=["GET"], detail=False, permission_classes=[IsAuthenticated]
+        methods=("GET",), detail=False, permission_classes=(IsAuthenticated,)
     )
     def download_shopping_cart(self, request):
         """Отдача пользователю списка покупок"""
@@ -102,7 +103,7 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
             )
 
         file_name = f"shopping_list_{user.username}.txt"
-        shopping_list = [f"Покупки пользователя {user.username}:\n"]
+        shopping_list = [f"Покупки пользователя {user.username}:\n\n"]
 
         # Объединия ингридиенты с одинаковым названием и единицей измерения
         ingredients = (
@@ -130,7 +131,7 @@ class GetIngredientsView(ListAPIView, RetrieveAPIView, GenericViewSet):
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = None
 
     def get_queryset(self):
@@ -147,7 +148,7 @@ class GetIngredientsView(ListAPIView, RetrieveAPIView, GenericViewSet):
 class GetTagsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     """Получение списка тегов"""
 
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = (IsAdminOrReadOnly,)
     queryset = Tags.objects.all()
     serializer_class = TagSerializer
     pagination_class = None

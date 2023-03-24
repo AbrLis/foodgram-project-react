@@ -8,7 +8,7 @@ class UserAdmin(admin.ModelAdmin):
         "id",
         "username",
         "email",
-        "role",
+        # "role",
         "first_name",
         "last_name",
     )
@@ -22,7 +22,7 @@ class UserAdmin(admin.ModelAdmin):
         "id",
         "username",
         "email",
-        "role",
+        # "role",
     )
 
 

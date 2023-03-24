@@ -1,3 +1,6 @@
+# Временный игнор workflow пока не настроен
+/.github/
+
 # Ignore migrations
 */migrations/*
 /backend/foodgram/api/migrations/
@@ -140,4 +143,3 @@ dmypy.json
 
 # .idea
 .idea
-
