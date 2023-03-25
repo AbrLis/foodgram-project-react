@@ -39,10 +39,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для рецептов"""
 
     author = UserSerializer(read_only=True)
-    # name = serializers.CharField(max_length=200)
     image = Base64ImageField()
-    # text = serializers.CharField()
-    # cooking_time = serializers.IntegerField(min_value=1)
     ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = serializers.SerializerMethodField()

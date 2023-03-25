@@ -63,9 +63,7 @@ jobs:
           key: ${{ secrets.KEY }}
           script: |
             sudo docker-compose down
-            cd /home/foodgram
-            docker-compose down
-            docker-compose pull
+            sudo docker pull lisinka/foodgram-backend:latest
             docker-compose up -d
 
   notify:

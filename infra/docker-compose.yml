@@ -13,11 +13,11 @@ services:
     volumes:
       - foodgram_db:/var/lib/postgresql/data/
     env_file:
-      - ../backend/foodgram/.env
+      - ./.env
 
 
   backend:
-    build: ../backend
+    image: lisinka/foodgram-backend:latest
     command: >
       bash -c "cd ./foodgram/ &&
       python manage.py makemigrations &&
@@ -31,7 +31,7 @@ services:
     depends_on:
       - db
     env_file:
-      - ../backend/foodgram/.env
+      - ./.env
 
 
   frontend:
