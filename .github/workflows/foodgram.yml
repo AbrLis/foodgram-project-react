@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_and_push_to_docker_hub
     steps:
-      - name: Copy files on server
+      - name: Copy files on server and create .env file and docker up
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -74,18 +74,10 @@ jobs:
             echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
             echo "SECRET_KEY" >> .env
             
-
-      - name: executing remote ssh commands to deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
-          script: |
             sudo docker-compose down
             sudo docker pull lisinka/foodgram-backend:latest
             sudo docker-compose up -d
-            sudo docker container prune -f
+            sudo docker container prune -
 
   # Отправка уведомления в Telegram
   notify:
