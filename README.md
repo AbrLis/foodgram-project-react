@@ -17,3 +17,10 @@
 - Nginx
 - Gunicorn
 
+## Запуск проекта
+1. Склонировать репозиторий
+2. В папке infra создать файл .env и заполнить его переменными окружения (пример в .env.example)
+3. В папке infra выполнить команду `docker-compose up -d`
+4. Перейти по адресу `http://localhost/`
+5. Для создания суперпользователя выполнить команду `docker exec backend python manage.py createsuperuser`
+6. Документация API доступна по адресу `http://localhost/api/docs/`
