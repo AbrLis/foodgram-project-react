@@ -10,60 +10,60 @@ on:
 
 jobs:
   #  # Тесты flake8
-  #  tests:
-  #    runs-on: ubuntu-latest
-  #    steps:
-  #      - uses: actions/checkout@v2
-  #      - name: Set up Python
-  #        uses: actions/setup-python@v2
-  #        with:
-  #          python-version: 3.7
-  #
-  #      - name: Install dependencies
-  #        run: |
-  #          python -m pip install --upgrade pip
-  #          pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
-  #
-  #      - name: Test with flake8
-  #        run: |
-  #          cd ./backend/
-  #          python -m flake8 .
-  #
-  #  # Сборка backend и пуш в Docker Hub
-  #  build_and_push_to_docker_hub:
-  #    name: Build docker image
-  #    runs-on: ubuntu-latest
-  #    needs: tests
-  #    steps:
-  #      - name: Check out the repo
-  #        uses: actions/checkout@v2
-  #      - name: Set up Docker Buildx
-  #        uses: docker/setup-buildx-action@v1
-  #      - name: Login to Docker
-  #        uses: docker/login-action@v1
-  #        with:
-  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
-  #      - name: Push to Docker Hub
-  #        uses: docker/build-push-action@v2
-  #        with:
-  #          context: ./backend/
-  #          push: true
-  #          tags: lisinka/foodgram-backend:latest
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
+
+      - name: Test with flake8
+        run: |
+          cd ./backend/
+          python -m flake8 .
+
+  # Сборка backend и пуш в Docker Hub
+  build_and_push_to_docker_hub:
+    name: Build docker image
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to Docker
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v2
+        with:
+          context: ./backend/
+          push: true
+          tags: lisinka/foodgram-backend:latest
 
   # Деплой на сервер
   deploy:
     runs-on: ubuntu-latest
-    #    needs: build_and_push_to_docker_hub
+    needs: build_and_push_to_docker_hub
     steps:
-      - name: Copy files infra
-        uses: appleboy/scp-action@master
-        with:
-          source: "infra/*, !infra/build/, docs/"
-          target: "home/${{ secrets.USERNAME }}"
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
+      #      - name: Copy files infra
+      #        uses: appleboy/scp-action@master
+      #        with:
+      #          source: "infra/*, !infra/build/, docs/"
+      #          target: "home/${{ secrets.USERNAME }}"
+      #          host: ${{ secrets.HOST }}
+      #          username: ${{ secrets.USERNAME }}
+      #          key: ${{ secrets.SSH_KEY }}
 
       - name: create .env file and docker up
         uses: appleboy/ssh-action@master
