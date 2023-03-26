@@ -1,12 +1,11 @@
 from pathlib import Path
 
+from core import validators
 from django.db.models import F
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import serializers
-
-from core import validators
 from recipes.models import (Ingredient, RecipeIngregient, Recipes,
                             SelectedRecipes, ShoppingList, Tags)
+from rest_framework import serializers
 from users.serializers import UserSerializer
 
 
