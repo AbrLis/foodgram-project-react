@@ -8,16 +8,6 @@ USER = "user"
 class User(AbstractUser):
     """Модель пользователя"""
 
-    # ROLE_CHOICES = (
-    #     (ADMIN, "Администратор"),
-    #     (USER, "Пользователь"),
-    # )
-    #
-    # role = models.CharField(
-    #     verbose_name="Роль",
-    #     max_length=30,
-    #     choices=ROLE_CHOICES,
-    # )
     email = models.EmailField(
         max_length=254, unique=True, null=False, verbose_name="Почта"
     )
@@ -30,7 +20,3 @@ class User(AbstractUser):
     groups = models.ManyToManyField(
         Group, verbose_name="Группы", related_name="user_grups", blank=True
     )
-
-    # @property
-    # def is_admin(self):
-    #     return self.role == ADMIN or self.is_superuser
