@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_and_push_to_docker_hub
     steps:
-      - name: Copy files infra
+      - name: Copy files infra and docs folder to server
         uses: appleboy/scp-action@master
         with:
           source: infra/docker-compose.yml, infra/nginx.conf, docs/
