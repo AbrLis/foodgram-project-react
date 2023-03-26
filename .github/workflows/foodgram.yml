@@ -60,7 +60,7 @@ jobs:
         uses: appleboy/scp-action@master
         with:
           source: ./infra/
-          remote: /home/${{ secrets.USERNAME }}
+          target: /home/${{ secrets.USERNAME }}
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
@@ -68,8 +68,8 @@ jobs:
       - name: Copy files docs
         uses: appleboy/scp-action@master
         with:
-          source: ./docs
-          remote: /home/${{ secrets.USERNAME }}
+          source: ./docs/
+          target: /home/${{ secrets.USERNAME }}/docs/
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
