@@ -75,12 +75,12 @@ jobs:
 #          key: ${{ secrets.SSH_KEY }}
 
       - name: create .env file and docker up
-        uses: garygrossgarten/github-action-ssh@release
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          privateKey: ${{ secrets.SSH_KEY }}
-          command: |
+          key: ${{ secrets.SSH_KEY }}
+          script: |
             touch .env
             echo "DB_ENGINE=${{ secrets.DB_ENGINE }}" >> .env
             echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
