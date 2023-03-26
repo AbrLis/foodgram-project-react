@@ -1,14 +1,15 @@
-from core.params import UrlParams
 from django.db.models import F, Q, Sum
 from django.http import HttpResponse
-from recipes.models import (Ingredient, Recipes, SelectedRecipes, ShoppingList,
-                            Tags)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
+
+from core.params import UrlParams
+from recipes.models import (Ingredient, Recipes, SelectedRecipes, ShoppingList,
+                            Tags)
 
 from .mixins import AddManyToManyFieldMixin
 from .paginators import PageLimitPagination
@@ -29,33 +30,32 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
     def get_queryset(self):
         """Подготовка queryset для запросов params"""
 
-        quryset = self.queryset
+        # Обработка параметров для поиска по тегам и автору
         tags = self.request.query_params.getlist(UrlParams.TAGS.value)
-        if tags:
-            quryset = quryset.filter(tags__slug__in=tags).distinct()
-
         author = self.request.query_params.get(UrlParams.AUTHOR.value)
+
+        tag_filter = Q()
+        if tags:
+            tag_filter = Q(tags__slug__in=tags)
+        author_filter = Q()
         if author:
-            quryset = quryset.filter(author=author)
+            author_filter = Q(author=author)
 
-        if self.request.user.is_anonymous:
-            return quryset
+        quryset = self.queryset.filter(tag_filter, author_filter).distinct()
 
-        # Обработка параметров для списка покупок
+        # Обработка параметров для списка покупок и избранных
         in_shop_cart = self.request.query_params.get(UrlParams.SHOP_CART.value)
-        if in_shop_cart == UrlParams.IS_TRUE.value:
-            quryset = quryset.filter(in_shopping_list__user=self.request.user)
-        elif in_shop_cart == UrlParams.IS_FALSE.value:
-            quryset = quryset.exclude(in_shopping_list__user=self.request.user)
-
-        # Обработка параметров для избранных рецептов
         in_favorites = self.request.query_params.get(UrlParams.FAVORITE.value)
-        if in_favorites == UrlParams.IS_TRUE.value:
-            quryset = quryset.filter(selected_recipes__user=self.request.user)
-        elif in_favorites == UrlParams.IS_FALSE.value:
-            quryset = quryset.exclude(selected_recipes__user=self.request.user)
 
-        return quryset
+        return quryset.filter(
+            Q(in_shopping_list__user=self.request.user)
+            if in_shop_cart == UrlParams.IS_TRUE.value
+            else ~Q(in_shopping_list__user=self.request.user),
+
+            Q(selected_recipes__user=self.request.user)
+            if in_favorites == UrlParams.IS_TRUE.value
+            else ~Q(selected_recipes__user=self.request.user),
+        )
 
     def get_permissions(self):
         if self.action in ("update", "partial_update", "destroy"):
@@ -136,11 +136,10 @@ class GetIngredientsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     def get_queryset(self):
         """Подготовка queryset для запросов params"""
 
-        quryset = self.queryset
         search = self.request.query_params.get(UrlParams.NAME.value)
         if search:
-            quryset = quryset.filter(name__istartswith=search)
-        return quryset
+            return self.queryset.filter(name__istartswith=search)
+        return self.queryset
 
 
 # ----------------Получение тегов----------------

@@ -1,11 +1,12 @@
 from pathlib import Path
 
-from core import validators
 from django.db.models import F
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
+
+from core import validators
 from recipes.models import (Ingredient, RecipeIngregient, Recipes,
                             SelectedRecipes, ShoppingList, Tags)
-from rest_framework import serializers
 from users.serializers import UserSerializer
 
 
@@ -126,13 +127,12 @@ class RecipeSerializer(serializers.ModelSerializer):
     def get_ingredients(self, recipes):
         """Формирует список ингридиентов для рецепта"""
 
-        ingredients = recipes.ingredients.values(
+        return recipes.ingredients.values(
             "id",
             "name",
             "measurement_unit",
             amount=F("recipeingregient__amount"),
         )
-        return ingredients
 
     def get_is_favorited(self, obj):
         """Проверяет, добавлен ли рецепт в избранное"""
