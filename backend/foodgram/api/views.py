@@ -29,11 +29,12 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
     def get_queryset(self):
         """Подготовка queryset для запросов params"""
 
-        # quryset = self.queryset
         tags = self.request.query_params.getlist(UrlParams.TAGS.value)
         author = self.request.query_params.get(UrlParams.AUTHOR.value)
 
-        quryset = self.queryset.filter(tags__slug__in=tags).distinct()
+        quryset = self.queryset
+        if tags:
+            quryset = quryset.filter(tags__slug__in=tags).distinct()
         if author:
             quryset = quryset.filter(author=author)
 
