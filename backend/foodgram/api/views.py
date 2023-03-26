@@ -29,38 +29,36 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
     def get_queryset(self):
         """Подготовка queryset для запросов params"""
 
-        # Обработка параметров для поиска по тегам и автору
+        # quryset = self.queryset
         tags = self.request.query_params.getlist(UrlParams.TAGS.value)
         author = self.request.query_params.get(UrlParams.AUTHOR.value)
 
-        tag_filter = Q()
-        if tags:
-            tag_filter = Q(tags__slug__in=tags)
-        author_filter = Q()
+        quryset = self.queryset.filter(tags__slug__in=tags).distinct()
         if author:
-            author_filter = Q(author=author)
-
-        quryset = self.queryset.filter(tag_filter, author_filter).distinct()
+            quryset = quryset.filter(author=author)
 
         if self.request.user.is_anonymous:
             return quryset
 
-        # Обработка параметров для списка покупок и избранных
+        # Обработка параметров для списка покупок
         in_shop_cart = self.request.query_params.get(UrlParams.SHOP_CART.value)
-        in_favorites = self.request.query_params.get(UrlParams.FAVORITE.value)
-
-        filter_shop = Q()
         if in_shop_cart == UrlParams.IS_TRUE.value:
-            filter_shop = Q(in_shopping_list__user=self.request.user)
+            quryset = self.queryset.filter(
+                in_shopping_list__user=self.request.user
+            )
         elif in_shop_cart == UrlParams.IS_FALSE.value:
-            filter_shop = ~Q(in_shopping_list__user=self.request.user)
-        filter_fav = Q()
-        if in_favorites == UrlParams.IS_TRUE.value:
-            filter_fav = Q(selected_recipes__user=self.request.user)
-        elif in_favorites == UrlParams.IS_FALSE.value:
-            filter_fav = ~Q(selected_recipes__user=self.request.user)
+            quryset = self.queryset.exclude(
+                in_shopping_list__user=self.request.user
+            )
 
-        return quryset.filter(filter_shop, filter_fav)
+        # Обработка параметров для избранных рецептов
+        in_favorites = self.request.query_params.get(UrlParams.FAVORITE.value)
+        if in_favorites == UrlParams.IS_TRUE.value:
+            quryset = quryset.filter(selected_recipes__user=self.request.user)
+        elif in_favorites == UrlParams.IS_FALSE.value:
+            quryset = quryset.exclude(selected_recipes__user=self.request.user)
+
+        return quryset
 
     def get_permissions(self):
         if self.action in ("update", "partial_update", "destroy"):

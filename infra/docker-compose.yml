@@ -17,12 +17,9 @@ services:
 
 
   backend:
-#    image: lisinka/foodgram-backend:latest
-    build: ../backend/
+    image: lisinka/foodgram-backend:latest
     container_name: foodgram-backend
-#    restart: always
-    ports:
-      - "8000:8000"
+    restart: always
     command: >
       bash -c "cd ./foodgram/ &&
       sleep 3 &&

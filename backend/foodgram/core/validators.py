@@ -16,7 +16,11 @@ def inrg_exist(ingredients: list[dict]):
     """
     count_ingr = 0
     for ingr in ingredients:
-        if ingr.get('id') and int(ingr.get('amount')) > 0:
+        if (
+            ingr.get("id")
+            and str(ingr.get("amount")).isdigit()
+            and int(ingr.get("amount")) > 0
+        ):
             count_ingr += 1
     if len(ingredients) != count_ingr:
         raise ValidationError("Ошибка в данных ингридиентов")
