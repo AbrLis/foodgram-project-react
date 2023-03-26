@@ -43,19 +43,26 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
 
         quryset = self.queryset.filter(tag_filter, author_filter).distinct()
 
+        if self.request.user.is_anonymous:
+            return quryset
+
         # Обработка параметров для списка покупок и избранных
         in_shop_cart = self.request.query_params.get(UrlParams.SHOP_CART.value)
         in_favorites = self.request.query_params.get(UrlParams.FAVORITE.value)
 
-        return quryset.filter(
-            Q(in_shopping_list__user=self.request.user)
-            if in_shop_cart == UrlParams.IS_TRUE.value
-            else ~Q(in_shopping_list__user=self.request.user),
+        filter_shop = Q()
+        if in_shop_cart == UrlParams.IS_TRUE.value:
+            filter_shop = Q(in_shopping_list__user=self.request.user)
+        elif in_shop_cart == UrlParams.IS_FALSE.value:
+            filter_shop = ~Q(in_shopping_list__user=self.request.user)
+        filter_fav = Q()
+        if in_favorites == UrlParams.IS_TRUE.value:
+            filter_fav = Q(selected_recipes__user=self.request.user)
+        elif in_favorites == UrlParams.IS_FALSE.value:
+            filter_fav = ~Q(selected_recipes__user=self.request.user)
 
-            Q(selected_recipes__user=self.request.user)
-            if in_favorites == UrlParams.IS_TRUE.value
-            else ~Q(selected_recipes__user=self.request.user),
-        )
+        return quryset.filter(filter_shop, filter_fav)
+
 
     def get_permissions(self):
         if self.action in ("update", "partial_update", "destroy"):
