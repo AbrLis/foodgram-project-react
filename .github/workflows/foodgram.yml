@@ -59,7 +59,7 @@ jobs:
       - name: Copy files infra
         uses: appleboy/scp-action@master
         with:
-          source: "infra/*, !infra/build, docs/*"
+          source: "infra/*, !infra/build/, docs/"
           target: "home/${{ secrets.USERNAME }}"
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
