@@ -1,7 +1,7 @@
 from core.params import UrlParams
 from django.db.models import F, Q, Sum
 from django.http import HttpResponse
-import django_filters.rest_framework as filters # Фильтр
+import django_filters.rest_framework as filters  # Фильтр
 from recipes.models import (
     Ingredient,
     Recipes,
@@ -26,17 +26,32 @@ from .serializers import (
     TagSerializer,
 )
 
+
 # ----------------Фильтер класс для рецептов----------------
 class RcipeFilter(filters.FilterSet):
+    tags = filters.CharFilter(field_name="tags__slug", distinct=True)
+    author = filters.CharFilter(field_name="author", lookup_expr="exact")
+    is_in_shopping_cart = filters.CharFilter(method="filter_in_shopping_cart")
+    is_favorited = filters.CharFilter(method="filter_favorited")
 
     class Meta:
         model = Recipes
-        fields = {
-            "tags__slug": ["in"],
-            "author": ["exact"],
-            "in_shopping_list__user": ["exact"],
-            "selected_recipes__user": ["exact"],
-        }
+        fields = ("tags", "author", "is_in_shopping_cart", "is_favorited")
+
+    def filter_in_shopping_cart(self, queryset, name, value):
+        if value == UrlParams.IS_TRUE.value:
+            return queryset.filter(in_shopping_list__user=self.request.user)
+        elif value == UrlParams.IS_FALSE.value:
+            return queryset.exclude(in_shopping_list__user=self.request.user)
+        return queryset
+
+    def filter_favorited(self, queryset, name, value):
+        if value == UrlParams.IS_TRUE.value:
+            return queryset.filter(selected_recipes__user=self.request.user)
+        elif value == UrlParams.IS_FALSE.value:
+            return queryset.exclude(selected_recipes__user=self.request.user)
+        return queryset
+
 
 # ----------------Обработка запросов рецептов----------------
 class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
@@ -48,37 +63,6 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
     serializers_for_mixin = RecipeShortSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = RcipeFilter
-
-    def filter_queryset(self, queryset):
-        """ "Фильтрация по параметрам"""
-
-        qs = super().filter_queryset(queryset)
-
-        tags = self.request.query_params.getlist(UrlParams.TAGS.value)
-        author = self.request.query_params.get(UrlParams.AUTHOR.value)
-        in_shop_cart = self.request.query_params.get(UrlParams.SHOP_CART.value)
-        in_favorites = self.request.query_params.get(UrlParams.FAVORITE.value)
-
-        if tags:
-            qs = qs.filter(tags__slug__in=tags).distinct()
-        if author:
-            qs = qs.filter(author=author)
-
-        if self.request.user.is_anonymous:
-            return qs
-
-        if in_shop_cart == UrlParams.IS_TRUE.value:
-            qs = qs.filter(in_shopping_list__user=self.request.user)
-        elif in_shop_cart == UrlParams.IS_FALSE.value:
-            qs = qs.exclude(in_shopping_list__user=self.request.user)
-
-        if in_favorites == UrlParams.IS_TRUE.value:
-            qs = qs.filter(selected_recipes__user=self.request.user)
-        elif in_favorites == UrlParams.IS_FALSE.value:
-            qs = qs.exclude(selected_recipes__user=self.request.user)
-
-        return qs
-
 
     def get_permissions(self):
         if self.action in ("update", "partial_update", "destroy"):
