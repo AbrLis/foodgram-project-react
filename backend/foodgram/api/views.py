@@ -32,7 +32,9 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         tags = self.request.query_params.getlist(UrlParams.TAGS.value)
         author = self.request.query_params.get(UrlParams.AUTHOR.value)
 
-        quryset = self.queryset.filter(tags__slug__in=tags).distinct()
+        quryset = self.queryset
+        if tags:
+            quryset = self.queryset.filter(tags__slug__in=tags).distinct()
         if author:
             quryset = quryset.filter(author=author)
 
