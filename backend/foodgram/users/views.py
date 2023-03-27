@@ -33,7 +33,7 @@ class MyUserViewSet(UserViewSet, AddManyToManyFieldMixin):
         if request.user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         queryset_user = User.objects.filter(
-            id__in=Follow.objects.select_related("user").values("author")
+            subscriptions__user=self.request.user
         )
         page = self.paginate_queryset(queryset_user.order_by("id"))
         serializer = SubscriptionSerializer(page, many=True)
