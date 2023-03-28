@@ -36,6 +36,20 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
             self.permission_classes = (AllowAny,)
         return super().get_permissions()
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["subscriptions"] = set(
+            SelectedRecipes.objects.filter(user=self.request.user).values_list(
+                "recipe_id", flat=True
+            )
+        )
+        context["shopping_list"] = set(
+            ShoppingList.objects.filter(user=self.request.user).values_list(
+                "recipe_id", flat=True
+            )
+        )
+        return context
+
     @action(
         methods=("GET", "POST", "DELETE"),
         detail=True,

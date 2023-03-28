@@ -3,8 +3,7 @@ from pathlib import Path
 from core import validators
 from django.db.models import F
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (Ingredient, RecipeIngregient, Recipes,
-                            SelectedRecipes, ShoppingList, Tags)
+from recipes.models import Ingredient, RecipeIngregient, Recipes, Tags
 from rest_framework import serializers
 from users.serializers import UserSerializer
 
@@ -137,16 +136,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         """Проверяет, добавлен ли рецепт в избранное"""
         user = self.context["request"].user
         return (
-            user.is_authenticated
-            and SelectedRecipes.objects.filter(user=user, recipe=obj).exists()
+            user.is_authenticated and obj.id in self.context["subscriptions"]
         )
 
     def get_is_in_shopping_cart(self, obj):
         """Проверяет, добавлен ли рецепт в список покупок"""
         user = self.context["request"].user
         return (
-            user.is_authenticated
-            and ShoppingList.objects.filter(user=user, recipe=obj).exists()
+            user.is_authenticated and obj.id in self.context["shopping_list"]
         )
 
     def create_ingridients(self, recipe, ingredients):
