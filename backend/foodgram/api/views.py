@@ -1,6 +1,5 @@
 import django_filters.rest_framework as filters
 
-from core.params import UrlParams
 from django.db.models import F, Q, Sum
 from django.http import HttpResponse
 from recipes.models import (Ingredient, Recipes, SelectedRecipes, ShoppingList,
