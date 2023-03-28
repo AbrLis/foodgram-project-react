@@ -1,5 +1,4 @@
 import django_filters.rest_framework as filters
-
 from django.db.models import F, Q, Sum
 from django.http import HttpResponse
 from recipes.models import (Ingredient, Recipes, SelectedRecipes, ShoppingList,
@@ -11,6 +10,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
+from .filters import IngredientsFilter, RcipeFilter
 from .mixins import AddManyToManyFieldMixin
 from .paginators import PageLimitPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
@@ -94,17 +94,6 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         )
         response["Content-Disposition"] = f'attachment; filename="{file_name}"'
         return response
-
-
-# ----------------Поисковой фильтр ингридиентов----------------
-class IngredientsFilter(filters.FilterSet):
-    """Фильтр для ингридиентов"""
-
-    name = filters.CharFilter(field_name="name", lookup_expr="istartswith")
-
-    class Meta:
-        model = Ingredient
-        fields = ("name",)
 
 
 # ----------------Получение ингридиентов с поиском----------------
