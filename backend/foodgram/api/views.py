@@ -1,8 +1,15 @@
+import django_filters.rest_framework as filters
+
 from core.params import UrlParams
 from django.db.models import F, Q, Sum
 from django.http import HttpResponse
-from recipes.models import (Ingredient, Recipes, SelectedRecipes, ShoppingList,
-                            Tags)
+from recipes.models import (
+    Ingredient,
+    Recipes,
+    SelectedRecipes,
+    ShoppingList,
+    Tags,
+)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -13,8 +20,12 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from .mixins import AddManyToManyFieldMixin
 from .paginators import PageLimitPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from .serializers import (IngredientSerializer, RecipeSerializer,
-                          RecipeShortSerializer, TagSerializer)
+from .serializers import (
+    IngredientSerializer,
+    RecipeSerializer,
+    RecipeShortSerializer,
+    TagSerializer,
+)
 
 
 # ----------------Обработка запросов рецептов----------------
@@ -128,6 +139,17 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         return response
 
 
+# ----------------Поисковой фильтр ингридиентов----------------
+class IngredientsFilter(filters.FilterSet):
+    """Фильтр для ингридиентов"""
+
+    name = filters.CharFilter(field_name="name", lookup_expr="istartswith")
+
+    class Meta:
+        model = Ingredient
+        fields = ("name",)
+
+
 # ----------------Получение ингридиентов с поиском----------------
 class GetIngredientsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     """Получение списка ингридиентов с возможностью поиска в начале строки"""
@@ -136,14 +158,8 @@ class GetIngredientsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = None
-
-    def get_queryset(self):
-        """Подготовка queryset для запросов params"""
-
-        search = self.request.query_params.get(UrlParams.NAME.value)
-        if search:
-            return self.queryset.filter(name__istartswith=search)
-        return self.queryset
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = IngredientsFilter
 
 
 # ----------------Получение тегов----------------
