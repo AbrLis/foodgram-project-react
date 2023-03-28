@@ -1,3 +1,5 @@
+import django_filters.rest_framework as filters
+
 from core.params import UrlParams
 from django.db.models import F, Q, Sum
 from django.http import HttpResponse
@@ -13,38 +15,8 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from .mixins import AddManyToManyFieldMixin
 from .paginators import PageLimitPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from .serializers import (
-    IngredientSerializer,
-    RecipeSerializer,
-    RecipeShortSerializer,
-    TagSerializer,
-)
-
-
-# ----------------Фильтер класс для рецептов----------------
-class RcipeFilter(filters.FilterSet):
-    tags = filters.CharFilter(field_name="tags__slug", distinct=True)
-    author = filters.CharFilter(field_name="author", lookup_expr="exact")
-    is_in_shopping_cart = filters.CharFilter(method="filter_in_shopping_cart")
-    is_favorited = filters.CharFilter(method="filter_favorited")
-
-    class Meta:
-        model = Recipes
-        fields = ("tags", "author", "is_in_shopping_cart", "is_favorited")
-
-    def filter_in_shopping_cart(self, queryset, name, value):
-        if value == UrlParams.IS_TRUE.value:
-            return queryset.filter(in_shopping_list__user=self.request.user)
-        elif value == UrlParams.IS_FALSE.value:
-            return queryset.exclude(in_shopping_list__user=self.request.user)
-        return queryset
-
-    def filter_favorited(self, queryset, name, value):
-        if value == UrlParams.IS_TRUE.value:
-            return queryset.filter(selected_recipes__user=self.request.user)
-        elif value == UrlParams.IS_FALSE.value:
-            return queryset.exclude(selected_recipes__user=self.request.user)
-        return queryset
+from .serializers import (IngredientSerializer, RecipeSerializer,
+                          RecipeShortSerializer, TagSerializer)
 
 
 # ----------------Обработка запросов рецептов----------------
@@ -125,6 +97,17 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         return response
 
 
+# ----------------Поисковой фильтр ингридиентов----------------
+class IngredientsFilter(filters.FilterSet):
+    """Фильтр для ингридиентов"""
+
+    name = filters.CharFilter(field_name="name", lookup_expr="istartswith")
+
+    class Meta:
+        model = Ingredient
+        fields = ("name",)
+
+
 # ----------------Получение ингридиентов с поиском----------------
 class GetIngredientsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     """Получение списка ингридиентов с возможностью поиска в начале строки"""
@@ -133,14 +116,8 @@ class GetIngredientsView(ListAPIView, RetrieveAPIView, GenericViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = None
-
-    def get_queryset(self):
-        """Подготовка queryset для запросов params"""
-
-        search = self.request.query_params.get(UrlParams.NAME.value)
-        if search:
-            return self.queryset.filter(name__istartswith=search)
-        return self.queryset
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = IngredientsFilter
 
 
 # ----------------Получение тегов----------------
