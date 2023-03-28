@@ -13,8 +13,38 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from .mixins import AddManyToManyFieldMixin
 from .paginators import PageLimitPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from .serializers import (IngredientSerializer, RecipeSerializer,
-                          RecipeShortSerializer, TagSerializer)
+from .serializers import (
+    IngredientSerializer,
+    RecipeSerializer,
+    RecipeShortSerializer,
+    TagSerializer,
+)
+
+
+# ----------------Фильтер класс для рецептов----------------
+class RcipeFilter(filters.FilterSet):
+    tags = filters.CharFilter(field_name="tags__slug", distinct=True)
+    author = filters.CharFilter(field_name="author", lookup_expr="exact")
+    is_in_shopping_cart = filters.CharFilter(method="filter_in_shopping_cart")
+    is_favorited = filters.CharFilter(method="filter_favorited")
+
+    class Meta:
+        model = Recipes
+        fields = ("tags", "author", "is_in_shopping_cart", "is_favorited")
+
+    def filter_in_shopping_cart(self, queryset, name, value):
+        if value == UrlParams.IS_TRUE.value:
+            return queryset.filter(in_shopping_list__user=self.request.user)
+        elif value == UrlParams.IS_FALSE.value:
+            return queryset.exclude(in_shopping_list__user=self.request.user)
+        return queryset
+
+    def filter_favorited(self, queryset, name, value):
+        if value == UrlParams.IS_TRUE.value:
+            return queryset.filter(selected_recipes__user=self.request.user)
+        elif value == UrlParams.IS_FALSE.value:
+            return queryset.exclude(selected_recipes__user=self.request.user)
+        return queryset
 
 
 # ----------------Обработка запросов рецептов----------------
@@ -25,41 +55,8 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
     queryset = Recipes.objects.all()
     pagination_class = PageLimitPagination
     serializers_for_mixin = RecipeShortSerializer
-
-    def get_queryset(self):
-        """Подготовка queryset для запросов params"""
-
-        tags = self.request.query_params.getlist(UrlParams.TAGS.value)
-        author = self.request.query_params.get(UrlParams.AUTHOR.value)
-
-        quryset = self.queryset
-        if tags:
-            quryset = self.queryset.filter(tags__slug__in=tags).distinct()
-        if author:
-            quryset = quryset.filter(author=author)
-
-        if self.request.user.is_anonymous:
-            return quryset
-
-        # Обработка параметров для списка покупок
-        in_shop_cart = self.request.query_params.get(UrlParams.SHOP_CART.value)
-        if in_shop_cart == UrlParams.IS_TRUE.value:
-            quryset = self.queryset.filter(
-                in_shopping_list__user=self.request.user
-            )
-        elif in_shop_cart == UrlParams.IS_FALSE.value:
-            quryset = self.queryset.exclude(
-                in_shopping_list__user=self.request.user
-            )
-
-        # Обработка параметров для избранных рецептов
-        in_favorites = self.request.query_params.get(UrlParams.FAVORITE.value)
-        if in_favorites == UrlParams.IS_TRUE.value:
-            quryset = quryset.filter(selected_recipes__user=self.request.user)
-        elif in_favorites == UrlParams.IS_FALSE.value:
-            quryset = quryset.exclude(selected_recipes__user=self.request.user)
-
-        return quryset
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = RcipeFilter
 
     def get_permissions(self):
         if self.action in ("update", "partial_update", "destroy"):
