@@ -37,18 +37,26 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         return super().get_permissions()
 
     def get_serializer_context(self):
+        """
+        Добавление в контекст списка избранных и списка покупок для
+        проверки в сериализаторе
+        """
+
         context = super().get_serializer_context()
-        context["subscriptions"] = set(
-            SelectedRecipes.objects.filter(user=self.request.user).values_list(
-                "recipe_id", flat=True
-            )
-        )
-        context["shopping_list"] = set(
-            ShoppingList.objects.filter(user=self.request.user).values_list(
-                "recipe_id", flat=True
-            )
-        )
+        context.update(self.fill_context("subscriptions", SelectedRecipes))
+        context.update(self.fill_context("shopping_list", ShoppingList))
         return context
+
+    def fill_context(self, name_context, model):
+        """Вспомогательный метод для заполнения контекста"""
+
+        return {
+            name_context: set(
+                model.objects.filter(user=self.request.user).values_list(
+                    "recipe_id", flat=True
+                )
+            )
+        }
 
     @action(
         methods=("GET", "POST", "DELETE"),
