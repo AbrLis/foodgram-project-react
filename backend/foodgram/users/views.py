@@ -22,6 +22,9 @@ class MyUserViewSet(UserViewSet, AddManyToManyFieldMixin):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context["request"] = self.request
+        context["subscribed"] = self.request.user.subscribers.values_list(
+            "author_id", flat=True
+        )
         return context
 
     @action(detail=False, methods=("get",), url_path="subscriptions")
