@@ -1,9 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import (
-    MaxValueValidator,
-    MinValueValidator,
-    RegexValidator,
-)
+from django.core.validators import (MaxValueValidator, MinValueValidator,
+                                    RegexValidator)
 from django.db import models
 
 User = get_user_model()
@@ -84,15 +81,6 @@ class RecipeIngregient(models.Model):
     amount = models.PositiveIntegerField(
         verbose_name="Количество ингридиента",
         default=1,
-        validators=(
-            MinValueValidator(
-                1, message="Количество ингридиента не может быть меньше 1"
-            ),
-            MaxValueValidator(
-                1000,
-                message="Количество ингридиента не может быть больше 1000",
-            ),
-        ),
     )
 
     class Meta:
@@ -134,10 +122,10 @@ class Recipes(models.Model):
         verbose_name="Время приготовления",
         validators=(
             MinValueValidator(
-                1, message="Время приготовления не может быть меньше 1"
+                1,
             ),
             MaxValueValidator(
-                1000, message="Время приготовления не может быть больше 1000"
+                1000,
             ),
         ),
     )
