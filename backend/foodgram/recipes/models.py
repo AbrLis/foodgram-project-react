@@ -1,6 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import (MaxValueValidator, MinValueValidator,
-                                    RegexValidator)
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+    RegexValidator,
+)
 from django.db import models
 
 User = get_user_model()
@@ -127,7 +130,16 @@ class Recipes(models.Model):
         max_length=200, null=False, verbose_name="Текст рецепта"
     )
     cooking_time = models.PositiveIntegerField(
-        null=False, verbose_name="Время приготовления"
+        null=False,
+        verbose_name="Время приготовления",
+        validators=(
+            MinValueValidator(
+                1, message="Время приготовления не может быть меньше 1"
+            ),
+            MaxValueValidator(
+                1000, message="Время приготовления не может быть больше 1000"
+            ),
+        ),
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,

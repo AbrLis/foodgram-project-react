@@ -11,7 +11,7 @@ def tags_exist(tags: list[int]):
 
 def inrg_exist(ingredients: list[dict]):
     """
-    Проверка на существование ингридиентов.
+    Проверка на валидность ингридиентов.
     На вход принимает список ингридиентов.
     """
     count_ingr = 0
@@ -23,4 +23,4 @@ def inrg_exist(ingredients: list[dict]):
         ):
             count_ingr += 1
     if len(ingredients) != count_ingr:
-        raise ValidationError("Ошибка в данных ингридиентов")
+        raise ValidationError("Ингридиент должен быть задан числом больше 0")
