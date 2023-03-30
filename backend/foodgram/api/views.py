@@ -43,22 +43,11 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         """
 
         context = super().get_serializer_context()
-        context.update(self.fill_context("subscriptions", SelectedRecipes))
-        context.update(self.fill_context("shopping_list", ShoppingList))
-        context.update(self.fill_context("subscribed", Follow, "author_id"))
+        context["subscribed"] = Follow.objects.filter(
+            user=self.request.user
+        ).values_list("author_id", flat=True)
 
         return context
-
-    def fill_context(self, name_context, model, field="recipe_id"):
-        """Вспомогательный метод для заполнения контекста"""
-
-        return {
-            name_context: set(
-                model.objects.filter(user=self.request.user).values_list(
-                    field, flat=True
-                )
-            )
-        }
 
     @action(
         methods=("GET", "POST", "DELETE"),

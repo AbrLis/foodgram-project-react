@@ -136,14 +136,18 @@ class RecipeSerializer(serializers.ModelSerializer):
         """Проверяет, добавлен ли рецепт в избранное"""
         user = self.context["request"].user
         return (
-            user.is_authenticated and obj.id in self.context["subscriptions"]
+            user.is_authenticated
+            and obj.selected_recipes_user
+            and user.id in obj.selected_recipes_user
         )
 
     def get_is_in_shopping_cart(self, obj):
         """Проверяет, добавлен ли рецепт в список покупок"""
         user = self.context["request"].user
         return (
-            user.is_authenticated and obj.id in self.context["shopping_list"]
+            user.is_authenticated
+            and obj.shopping_list_user
+            and user.id in obj.shopping_list_user
         )
 
     def create_ingridients(self, recipe, ingredients):

@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
+from django.db.models import Subquery
 
 User = get_user_model()
 
@@ -62,6 +65,45 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class RecipesManager(models.Manager):
+    """
+    Менеджер дополнительных полей
+    - Список id пользователей у которых рецепт в избранном
+            - selected_recipes_user
+    - Список id пользователей у кого рецепт в списке покупок
+            - recipes_in_shopping_list
+    """
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                selected_recipes_user=Subquery(
+                    self.create_user_list(SelectedRecipes),
+                    output_field=ArrayField(models.IntegerField()),
+                ),
+                shopping_list_user=Subquery(
+                    self.create_user_list(ShoppingList),
+                    output_field=ArrayField(models.IntegerField()),
+                ),
+            )
+        )
+
+    def create_user_list(self, model):
+        """
+        Вспомогательный метод для создания списка пользователей рецепта
+        -model: Модель по которой происходит выборка
+        -return: Агрегированный список пользователей
+        """
+        return (
+            model.objects.filter(recipe=models.OuterRef("pk"))
+            .values("recipe")
+            .annotate(users=ArrayAgg("user_id", distinct=True))
+            .values("users")
+        )
 
 
 class RecipeIngregient(models.Model):
@@ -148,6 +190,7 @@ class Recipes(models.Model):
         related_name="recipes",
         verbose_name="Ингридиенты",
     )
+    objects = RecipesManager()
 
     class Meta:
         verbose_name = "Рецепт"
