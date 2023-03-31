@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from core import validators
+from django.db import transaction
 from django.db.models import F
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import Ingredient, RecipeIngregient, Recipes, Tags
@@ -58,6 +59,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             "is_in_shopping_cart",
         )
 
+    @transaction.atomic()
     def create(self, validated_data):
         """Создает рецепт с ингридиентами, тегами и картинкой в базе данных"""
 
@@ -70,6 +72,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         return recipe
 
+    @transaction.atomic()
     def update(self, instance, validated_data):
         """
         Обновляет рецепт с ингридиентами, тегами и картинкой в базе данных
@@ -134,17 +137,15 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         """Проверяет, добавлен ли рецепт в избранное"""
-        user = self.context["request"].user
-        return (
-            user.is_authenticated and obj.id in self.context["subscriptions"]
-        )
+        if self.context['request'].user.is_anonymous:
+            return False
+        return obj.is_selected_recipe
 
     def get_is_in_shopping_cart(self, obj):
         """Проверяет, добавлен ли рецепт в список покупок"""
-        user = self.context["request"].user
-        return (
-            user.is_authenticated and obj.id in self.context["shopping_list"]
-        )
+        if self.context['request'].user.is_anonymous:
+            return False
+        return obj.is_in_shopping_cart
 
     def create_ingridients(self, recipe, ingredients):
         """Заполняет таблицу ингридиентов для рецепта"""

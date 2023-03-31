@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.db import transaction
 from djoser.serializers import UserCreateSerializer
 from recipes.models import Recipes
 from rest_framework import serializers
@@ -28,6 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
         return (
             user.is_authenticated
             and user != obj
+            and self.context.get('subscribed')
             and obj.id in self.context['subscribed']
         )
 
@@ -54,6 +56,7 @@ class MyUserCreateSerializer(UserCreateSerializer):
             "password",
         )
 
+    @transaction.atomic()
     def validate(self, attrs):
         email = User.objects.filter(email=attrs["email"])
         if email:
@@ -63,6 +66,7 @@ class MyUserCreateSerializer(UserCreateSerializer):
             raise serializers.ValidationError("Username already exists")
         return attrs
 
+    @transaction.atomic()
     def create(self, validated_data):
         user = User(**validated_data)
         user.set_password(validated_data["password"])

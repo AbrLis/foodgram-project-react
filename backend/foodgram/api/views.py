@@ -1,5 +1,5 @@
 import django_filters.rest_framework as filters
-from django.db.models import F, Q, Sum
+from django.db.models import BooleanField, Exists, F, OuterRef, Q, Sum
 from django.http import HttpResponse
 from recipes.models import (Follow, Ingredient, Recipes, SelectedRecipes,
                             ShoppingList, Tags)
@@ -36,29 +36,45 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
             self.permission_classes = (AllowAny,)
         return super().get_permissions()
 
-    def get_serializer_context(self):
-        """
-        Добавление в контекст списка избранных и списка покупок для
-        проверки в сериализаторе
-        """
+    def get_queryset(self):
+        """Добавление в выдачу списка избранных и списка покупок"""
 
-        context = super().get_serializer_context()
-        context.update(self.fill_context("subscriptions", SelectedRecipes))
-        context.update(self.fill_context("shopping_list", ShoppingList))
-        context.update(self.fill_context("subscribed", Follow, "author_id"))
+        user = self.request.user
+        if user.is_anonymous:
+            return self.queryset
+        return self.queryset.annotate(
+            is_in_shopping_cart=self.field_exists(
+                self.query_model(ShoppingList)
+            ),
+            is_selected_recipe=self.field_exists(
+                self.query_model(SelectedRecipes)
+            ),
+        )
 
-        return context
+    def field_exists(self, field):
+        """Вспомогательная функция для добавления в выдачу списка избранных"""
+        return Exists(field, output_field=BooleanField())
 
-    def fill_context(self, name_context, model, field="recipe_id"):
-        """Вспомогательный метод для заполнения контекста"""
+    def query_model(self, model):
+        """Вспомогательная функция для добавления в выдачу списка избранных"""
+        return model.objects.filter(
+            user=self.request.user, recipe=OuterRef("pk")
+        )
 
-        return {
-            name_context: set(
-                model.objects.filter(user=self.request.user).values_list(
-                    field, flat=True
-                )
-            )
-        }
+    # def get_serializer_context(self):
+    #     """
+    #     Добавление в контекст списка избранных и списка покупок для
+    #     проверки в сериализаторе
+    #     """
+    #
+    #     if self.request.user.is_anonymous:
+    #         return super().get_serializer_context()
+    #     context = super().get_serializer_context()
+    #     context["subscribed"] = Follow.objects.filter(
+    #         user=self.request.user
+    #     ).values_list("author_id", flat=True)
+    #
+    #     return context
 
     @action(
         methods=("GET", "POST", "DELETE"),
