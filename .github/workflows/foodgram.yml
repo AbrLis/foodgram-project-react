@@ -83,7 +83,7 @@ jobs:
   # Отправка уведомления в Telegram
   notify:
     runs-on: ubuntu-latest
-    needs: deploy
+    needs: build_and_push_to_docker_hub
     steps:
       - name: Notify about deployment
         uses: appleboy/telegram-action@master
