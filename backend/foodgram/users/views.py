@@ -2,7 +2,7 @@ from api.mixins import AddManyToManyFieldMixin
 from api.paginators import PageLimitPagination
 from core.params import UrlParams
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import BooleanField, Exists, OuterRef, Q
 from djoser.views import UserViewSet
 from recipes.models import Follow
 from rest_framework import status
@@ -19,13 +19,15 @@ class MyUserViewSet(UserViewSet, AddManyToManyFieldMixin):
     pagination_class = PageLimitPagination
     serializers_for_mixin = SubscriptionSerializer
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context["request"] = self.request
-        context["subscribed"] = self.request.user.subscribers.values_list(
-            "author_id", flat=True
+    def get_queryset(self):
+        """Добавление в выдачу списка подписок"""
+        return self.queryset.annotate(
+            is_in_subscriptions=Exists(
+                Follow.objects.filter(
+                    user=self.request.user, author=OuterRef("pk")
+                ), output_field=BooleanField()
+            )
         )
-        return context
 
     @action(detail=False, methods=("get",), url_path="subscriptions")
     def subscriptions(self, request, *args, **kwargs):

@@ -1,8 +1,8 @@
 import django_filters.rest_framework as filters
 from django.db.models import BooleanField, Exists, F, OuterRef, Q, Sum
 from django.http import HttpResponse
-from recipes.models import (Follow, Ingredient, Recipes, SelectedRecipes,
-                            ShoppingList, Tags)
+from recipes.models import (Ingredient, Recipes, SelectedRecipes, ShoppingList,
+                            Tags)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -60,21 +60,6 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         return model.objects.filter(
             user=self.request.user, recipe=OuterRef("pk")
         )
-
-    # def get_serializer_context(self):
-    #     """
-    #     Добавление в контекст списка избранных и списка покупок для
-    #     проверки в сериализаторе
-    #     """
-    #
-    #     if self.request.user.is_anonymous:
-    #         return super().get_serializer_context()
-    #     context = super().get_serializer_context()
-    #     context["subscribed"] = Follow.objects.filter(
-    #         user=self.request.user
-    #     ).values_list("author_id", flat=True)
-    #
-    #     return context
 
     @action(
         methods=("GET", "POST", "DELETE"),

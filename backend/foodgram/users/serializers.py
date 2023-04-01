@@ -29,8 +29,8 @@ class UserSerializer(serializers.ModelSerializer):
         return (
             user.is_authenticated
             and user != obj
-            and self.context.get('subscribed')
-            and obj.id in self.context['subscribed']
+            and hasattr(obj, 'is_in_subscriptions')
+            and obj.is_in_subscriptions
         )
 
 
