@@ -1,8 +1,9 @@
 import django_filters.rest_framework as filters
+from core.params import SHOPPING_LIST, SUBCRIPTIONS
 from django.db.models import F, Q, Sum
 from django.http import HttpResponse
-from recipes.models import (Follow, Ingredient, Recipes, SelectedRecipes,
-                            ShoppingList, Tags)
+from recipes.models import (Ingredient, Recipes, SelectedRecipes, ShoppingList,
+                            Tags)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -43,19 +44,18 @@ class CreateRecipeView(ModelViewSet, AddManyToManyFieldMixin):
         """
 
         context = super().get_serializer_context()
-        context.update(self.fill_context("subscriptions", SelectedRecipes))
-        context.update(self.fill_context("shopping_list", ShoppingList))
-        context.update(self.fill_context("subscribed", Follow, "author_id"))
+        context.update(self.fill_context(SUBCRIPTIONS, SelectedRecipes))
+        context.update(self.fill_context(SHOPPING_LIST, ShoppingList))
 
         return context
 
-    def fill_context(self, name_context, model, field="recipe_id"):
+    def fill_context(self, name_context, model):
         """Вспомогательный метод для заполнения контекста"""
 
         return {
             name_context: set(
                 model.objects.filter(user=self.request.user).values_list(
-                    field, flat=True
+                    "recipe_id", flat=True
                 )
             )
         }

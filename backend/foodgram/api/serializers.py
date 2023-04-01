@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from core import validators
+from django.db import transaction
 from django.db.models import F
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import Ingredient, RecipeIngregient, Recipes, Tags
@@ -58,6 +59,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             "is_in_shopping_cart",
         )
 
+    @transaction.atomic()
     def create(self, validated_data):
         """Создает рецепт с ингридиентами, тегами и картинкой в базе данных"""
 
@@ -70,6 +72,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         return recipe
 
+    @transaction.atomic()
     def update(self, instance, validated_data):
         """
         Обновляет рецепт с ингридиентами, тегами и картинкой в базе данных
