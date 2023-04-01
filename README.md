@@ -21,3 +21,5 @@
 4. Перейти по адресу `http://localhost/`
 5. Для создания суперпользователя выполнить команду `docker exec backend python manage.py createsuperuser`
 6. Документация API доступна по адресу `http://localhost/api/docs/`
+
+## Дополнительные варианты реализации передачи контекста через annotate и через менеджер контекста (ради интереса) можно посмотреть в ветках context_annotate и manager_models

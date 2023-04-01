@@ -1,6 +1,6 @@
 from api.mixins import AddManyToManyFieldMixin
 from api.paginators import PageLimitPagination
-from core.params import UrlParams
+from core.params import SUBSCRIBED, UrlParams
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from djoser.views import UserViewSet
@@ -20,9 +20,13 @@ class MyUserViewSet(UserViewSet, AddManyToManyFieldMixin):
     serializers_for_mixin = SubscriptionSerializer
 
     def get_serializer_context(self):
+        """
+        Добавление в контекст списка подписок для проверки в сериализаторе,
+        добавляется список id авторов, на которых подписан пользователь
+        """
+
         context = super().get_serializer_context()
-        context["request"] = self.request
-        context["subscribed"] = self.request.user.subscribers.values_list(
+        context[SUBSCRIBED] = self.request.user.subscribers.values_list(
             "author_id", flat=True
         )
         return context
